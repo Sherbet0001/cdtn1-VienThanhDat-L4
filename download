@@ -1,0 +1,22 @@
+# Node
+node_modules/
+npm-debug.log*
+dist/
+build/
+coverage/
+
+# Môi trường và bí mật
+.env
+.env.*
+!.env.example
+
+# Hệ điều hành / trình soạn thảo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# drawio sao lưu tự động
+*.bkp
+.$*.drawio.bkp
+*.dtmp
