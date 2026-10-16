@@ -29,7 +29,8 @@ Không thuộc MVP: tiếp nhận phiếu (L2), tự động phân công tối �
 | `docs/wireframe.drawio` · `docs/wireframe.png` | Wireframe 3 màn hình |
 | `docs/api-contract.md` | Hợp đồng API (7 endpoint) |
 | `docs/deployment-guide.md` | Hướng dẫn dựng và kiểm tra môi trường |
-| `docs/ai-disclosure-Tuan1.md` … `Tuan3.md` | Bảng khai báo sử dụng công cụ AI theo từng bài nộp |
+| `docs/ai-disclosure.md` | Bảng khai báo sử dụng công cụ AI (tổng hợp) |
+| `docs/ai-disclosure-Tuan1.md` … `Tuan3.md` | Ba bản khai báo AI đã nộp theo từng tuần (hồ sơ gốc) |
 
 Các tệp `.drawio` mở bằng [diagrams.net](https://app.diagrams.net) để xem và chỉnh sửa.
 
