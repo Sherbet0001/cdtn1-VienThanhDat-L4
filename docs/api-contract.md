@@ -61,7 +61,7 @@ Response 200:
 
 #### 2.2 GET /api/tickets/{ticketId}/eligible-technicians (FR2)
 
-Path: ticketId (số nguyên dương). Trả kỹ thuật viên cùng trung tâm, is_active = true, proficiency ≥ 3 với nhóm sự cố của phiếu, sắp tăng dần theo open_tickets.
+Path: ticketId (số nguyên dương). Trả kỹ thuật viên cùng trung tâm, is_active = true, proficiency ≥ 3 với nhóm sự cố của phiếu, sắp tăng dần theo open_tickets. open_tickets là số phiếu đang giữ của kỹ thuật viên, tức số phiếu có technician_id đó ở trạng thái DA_PHAN_CONG, DANG_XU_LY hoặc CHO_LINH_KIEN.
 
 Response 200:
 
@@ -189,6 +189,8 @@ Response 201:
 | 404 | TICKET_NOT_FOUND | Mã phiếu và số điện thoại không khớp (cố ý dùng chung một thông báo để không lộ phiếu có tồn tại) |
 | 409 | SLOT_CONFLICT / TICKET_NOT_BOOKABLE | Kỹ thuật viên đã có lịch chồng khung giờ; hoặc phiếu chưa có kỹ thuật viên, ĐÃ ĐÓNG/ĐÃ HỦY, hoặc loại hẹn không hợp lệ với trạng thái phiếu (BR-L4-02, 03) |
 | 500 | INTERNAL_ERROR | Lỗi hệ thống; không tạo lịch hẹn |
+
+Lưu ý (FR9, UC6 bước 5a): phản hồi 409 SLOT_CONFLICT không kèm khung giờ gợi ý. Khi nhận 409 SLOT_CONFLICT, giao diện gọi tiếp POST /api/appointments/available-slots (mục 2.7) với cùng ticket_code, phone, type để lấy ít nhất 3 khung giờ trống gần nhất.
 
 #### 2.7 POST /api/appointments/available-slots (FR9)
 
