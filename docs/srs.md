@@ -50,7 +50,7 @@
 | Mã | Yêu cầu chức năng | MoSCoW |
 | --- | --- | --- |
 | FR1 | Hệ thống hiển thị danh sách phiếu ở trạng thái MỚI chưa có KTV, thuộc trung tâm của quản lý, sắp theo hạn cam kết tăng dần. | MUST |
-| FR2 | Với một phiếu, hệ thống liệt kê KTV đủ điều kiện (cùng trung tâm, đang hoạt động, mức thành thạo ≥ 3 với nhóm sự cố của phiếu) kèm số phiếu đang xử lý. | SHOULD |
+| FR2 | Với một phiếu, hệ thống liệt kê KTV đủ điều kiện (cùng trung tâm, đang hoạt động, mức thành thạo ≥ 3 với nhóm sự cố của phiếu) kèm số phiếu đang giữ (phiếu của KTV đó ở trạng thái ĐÃ PHÂN CÔNG, ĐANG XỬ LÝ hoặc CHỜ LINH KIỆN). | SHOULD |
 | FR3 | Hệ thống gán một KTV cho phiếu, chuyển trạng thái MỚI → ĐÃ PHÂN CÔNG và ghi ticket_status_log trong một giao dịch. | MUST |
 | FR4 | Hệ thống từ chối việc gán khi KTV không đủ điều kiện (khác trung tâm, thành thạo < 3, không hoạt động) hoặc khi phiếu đã có KTV, và nêu rõ lý do. | MUST |
 | FR5 | Hệ thống cho đổi KTV của phiếu, bắt buộc nhập lý do, lưu KTV cũ/mới, thời điểm, người thực hiện. | SHOULD |
@@ -89,7 +89,7 @@
 
 - AC1. GIVEN phiếu BH001287/2026 đã gán cho Khoa và Khoa rảnh 09:00–09:30 ngày 12/10/2026, WHEN khách nhập đúng mã phiếu + số điện thoại và chọn khung giờ đó, THEN hệ thống lưu lịch hẹn ĐÃ XÁC NHẬN và hiển thị mã lịch hẹn, ngày giờ.
 - AC2. (ngoại lệ) GIVEN Khoa đã có lịch 09:00–09:30 ngày 12/10/2026, WHEN khách khác chọn đúng khung đó, THEN hệ thống từ chối, không lưu và thông báo khung giờ đã kín.
-- AC3. (ngoại lệ) GIVEN khách chọn khung giờ vào Chủ nhật hoặc sau 17:30, WHEN bấm xác nhận, THEN hệ thống từ chối và nêu khung giờ hợp lệ (BR-L4-01).
+- AC3. (ngoại lệ) GIVEN khách chọn khung giờ vào Chủ nhật, bắt đầu sau 17:00 hoặc không nằm trên mốc :00/:30, WHEN bấm xác nhận, THEN hệ thống từ chối và nêu khung giờ hợp lệ (BR-L4-01).
 
 ### 3.4 Kiểm tra INVEST và bốn lỗi thường gặp
 
@@ -119,13 +119,14 @@ Soi bốn lỗi: không có từ định tính mơ hồ; mỗi story có tiêu c
 
 | Mã | Quy tắc | Nguồn |
 | --- | --- | --- |
+| QT-02 | Số điện thoại được chuẩn hóa về 10 chữ số bắt đầu bằng 0 trước khi lưu và trước khi so khớp; các dạng +84…, 84…, có dấu cách hoặc dấu chấm đều quy về dạng chuẩn (dùng khi khách nhập số điện thoại để xác thực). | Case study, Mục 9 |
 | QT-04 | Hạn cam kết sinh theo mức ưu tiên (CAO 24h, TRUNG_BINH 72h, THAP 120h), chỉ tính thứ Hai–thứ Bảy; dùng để sắp xếp và đánh dấu phiếu sắp quá hạn. | Case study, Mục 9 |
 | QT-06 | Phiếu chỉ chuyển trạng thái theo đúng vòng đời, không quay lại; mọi lần chuyển ghi vào ticket_status_log. | Case study, Mục 9 |
 | QT-07 | Một phiếu tại một thời điểm chỉ gán cho tối đa một KTV; đổi KTV phải ghi lý do. | Case study, Mục 9 |
 | QT-08 | Chỉ phân công KTV cùng trung tâm và có mức thành thạo ≥ 3 với nhóm sự cố của phiếu. | Case study, Mục 9 |
 | QT-13/14/15 | Không xóa vật lý; chỉ xem dữ liệu đơn vị mình; số điện thoại che với mọi vai trò trừ quản lý. | Case study, Mục 9 |
 | BR-L4-01 | Lịch hẹn dài 30 phút, bắt đầu đúng mốc :00 hoặc :30, trong giờ làm việc 08:00–17:30 (khung cuối bắt đầu 17:00), thứ Hai–thứ Bảy, không đặt vào quá khứ. | Giả định của sinh viên |
-| BR-L4-02 | Một KTV không có hai lịch hẹn chồng khung giờ. Hẹn giao máy chỉ khi phiếu ở ĐÃ PHÂN CÔNG trở đi; hẹn nhận máy chỉ khi phiếu HOÀN TẬT. | Giả định của sinh viên |
+| BR-L4-02 | Một KTV không có hai lịch hẹn chồng khung giờ. Hẹn giao máy chỉ khi phiếu ở ĐÃ PHÂN CÔNG, ĐANG XỬ LÝ hoặc CHỜ LINH KIỆN; hẹn nhận máy chỉ khi phiếu HOÀN TẬT. | Giả định của sinh viên |
 | BR-L4-03 | Khách chỉ đặt lịch cho phiếu của chính mình; phiếu ĐÃ ĐÓNG hoặc ĐÃ HỦY không đặt lịch được. | Giả định của sinh viên |
 
 ## 6. Bảng truy vết yêu cầu
@@ -204,7 +205,7 @@ File gốc: `docs/usecase.drawio` (ảnh xem nhanh: `docs/usecase.png`).
 | --- | --- |
 | Actor chính | Khách hàng |
 | Mục tiêu | Hẹn khung giờ giao máy cho KTV (hoặc nhận máy sau khi sửa xong) mà không trùng lịch. |
-| Điều kiện trước | Phiếu đã có KTV: ĐÃ PHÂN CÔNG trở đi (giao máy) hoặc HOÀN TẬT (nhận máy); khách biết mã phiếu và số điện thoại đã đăng ký. |
+| Điều kiện trước | Phiếu đã có KTV: ĐÃ PHÂN CÔNG, ĐANG XỬ LÝ hoặc CHỜ LINH KIỆN (giao máy) hoặc HOÀN TẬT (nhận máy); khách biết mã phiếu và số điện thoại đã đăng ký. |
 | Điều kiện sau | Một lịch hẹn ĐÃ XÁC NHẬN được lưu, gắn với phiếu và KTV, không chồng khung giờ với lịch nào khác của KTV đó. |
 | Liên quan | US6, US7 · FR7–FR9 · BR-L4-01..03 · NFR2, NFR3 · MUST |
 
@@ -222,7 +223,7 @@ File gốc: `docs/usecase.drawio` (ảnh xem nhanh: `docs/usecase.png`).
 
 - **2a.** Mã phiếu và số điện thoại không khớp → từ chối bằng thông báo chung, không tiết lộ phiếu có tồn tại hay không.
 - **2b.** Phiếu chưa có KTV, hoặc đã ĐÃ ĐÓNG/ĐÃ HỦY → thông báo không thể đặt lịch.
-- **4a.** Khung giờ ở quá khứ, ngoài 08:00–17:30 hoặc vào Chủ nhật → từ chối, nêu khung giờ hợp lệ (BR-L4-01).
+- **4a.** Khung giờ ở quá khứ, vào Chủ nhật, bắt đầu trước 08:00 hoặc sau 17:00, hoặc không nằm trên mốc :00/:30 → từ chối, nêu khung giờ hợp lệ (BR-L4-01).
 - **5a.** Khung giờ trùng lịch của KTV → không lưu, hiển thị ít nhất 3 khung giờ trống gần nhất [extend UC7]; khách chọn lại và quay về bước 5.
 - **5b.** Không còn khung trống trong 7 ngày tới → thông báo và đề nghị chọn ngày khác.
 - **6a.** Hai khách xác nhận cùng khung giờ của cùng KTV gần như đồng thời → chỉ một yêu cầu thành công; người còn lại nhận kết quả như 5a.
