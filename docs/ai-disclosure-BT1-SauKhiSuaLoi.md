@@ -1,8 +1,8 @@
-# BẢNG KHAI BÁO SỬ DỤNG CÔNG CỤ AI HỖ TRỢ (tổng hợp)
+# BẢNG KHAI BÁO SỬ DỤNG CÔNG CỤ AI HỖ TRỢ – BT1 sau khi sửa lỗi (16/10/2026)
 
 **Học phần:** Chuyên đề Tốt nghiệp 1 (Specialized Graduation Topic I)  
 **Học kỳ:** HK1, Năm học 2026 – 2027  
-**Phạm vi:** Toàn bộ quá trình đến hết Bài tập 1 và phần hoàn thiện gói BT1 sau khi nộp. Các mục BT2 sẽ được thêm vào cuối tệp này.
+**Phạm vi:** Chỉ phần hoàn thiện gói BT1 sau khi đã nộp (ngày 16/10/2026). Bài tập 2 sẽ có bản khai báo riêng là `docs/ai-disclosure.md`.
 
 ## I. THÔNG TIN SINH VIÊN
 
@@ -12,22 +12,11 @@
 - **Luồng nghiệp vụ:** L4 – Phân công kỹ thuật viên và lịch hẹn
 - **Repository:** <https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4>
 
-Ba bản khai báo đã nộp theo từng tuần được giữ nguyên làm hồ sơ gốc: `docs/ai-disclosure-Tuan1.md` (26/09/2026, phiếu phạm vi), `docs/ai-disclosure-Tuan2.md` (03/10/2026, phân tích yêu cầu), `docs/ai-disclosure-Tuan3.md` (10/10/2026, gói thiết kế BT1). Bảng dưới đây gom lại nội dung ba bản đó và bổ sung phần làm sau ngày nộp BT1.
+Các bản khai báo theo từng tuần được giữ nguyên làm hồ sơ gốc, không chép lại ở đây: `docs/ai-disclosure-Tuan1.md` (26/09/2026, phiếu phạm vi), `docs/ai-disclosure-Tuan2.md` (03/10/2026, phân tích yêu cầu), `docs/ai-disclosure-Tuan3.md` (10/10/2026, gói thiết kế BT1). Tệp này là bản khai báo của tuần tiếp theo, ghi phần làm sau khi nộp BT1.
 
 ## II. BẢNG KHAI BÁO CHI TIẾT
 
-### A. Đến hết Bài tập 1 (theo ba bản khai báo đã nộp)
-
-| Ngày | Công cụ AI | Dùng vào việc gì | Áp dụng ở tệp / mục | Đã kiểm chứng và chỉnh sửa thế nào |
-|---|---|---|---|---|
-| 26/09/2026 | ChatGPT | Liệt kê các User Story liên quan đến quản lý trung tâm | Phiếu phạm vi, Mục 3 (danh sách User Story) | Sinh viên đối chiếu các User Story với phạm vi bài toán và điều chỉnh cho phù hợp đề tài |
-| 03/10/2026 | Claude (Anthropic) | Gợi ý nội dung cho yêu cầu chức năng, quy tắc nghiệp vụ, bảng truy vết và đặc tả use case | `docs/srs.md`: Mục 3 (FR2, FR3), Mục 5 (quy tắc nghiệp vụ), Mục 6 (bảng truy vết); đặc tả use case (Mục 2.2 và 2.3 của bài nộp tuần 2) | Sinh viên đọc, đối chiếu với yêu cầu đề tài, sửa và bổ sung các nội dung không phù hợp |
-| 10/10/2026 | Claude (Anthropic) | Rà soát và biên tập SRS, User Story, tiêu chí Given–When–Then, bảng truy vết | `docs/srs.md`; báo cáo BT1 Mục 1 | Đối chiếu từng mã FR–US–UC–API–test case với tài liệu buổi 3–4 và đề bài BT1; kiểm tra không còn ô trống |
-| 10/10/2026 | Claude (Anthropic) | Dựng use case diagram, kiến trúc, ERD, wireframe | `docs/usecase.drawio`, `architecture.drawio`, `erd.drawio`, `wireframe.drawio` và các ảnh `.png`; báo cáo BT1 Mục 2–5 | Mở `.drawio` bằng diagrams.net để rà bố cục; đối chiếu mọi trường wireframe với mô hình dữ liệu |
-| 10/10/2026 | Claude (Anthropic) | Soạn SQL DDL skeleton, hợp đồng API, lập luận kiến trúc theo khuôn NFR | `docs/api-contract.md`; DDL trong báo cáo BT1 Mục 4 | Đối chiếu lập luận với ngưỡng NFR trong SRS; kiểm tra DDL trên PostgreSQL |
-| Cả ba tuần | Không sử dụng | Các phần còn lại do sinh viên tự phân tích và viết | Tuần 1: Mục 1, 2, 4, 5; Tuần 2: Mục 1, 2, 4 | Sinh viên tự thực hiện theo yêu cầu đề tài và tài liệu được cung cấp |
-
-### B. Hoàn thiện gói BT1 sau khi nộp (16/10/2026)
+### Hoàn thiện gói BT1 sau khi nộp (16/10/2026)
 
 Các thay đổi này được làm cùng Claude (Anthropic, qua claude.ai) để vá những chỗ gói BT1 còn thiếu. Sinh viên đưa ra yêu cầu, duyệt từng đề xuất của Claude trước khi áp dụng, và tự thực hiện mọi `git commit` và `git push`.
 
@@ -37,16 +26,16 @@ Các thay đổi này được làm cùng Claude (Anthropic, qua claude.ai) đ�
 | Claude (Anthropic) | Soạn `docs/schema.sql` từ DDL trong báo cáo BT1 Mục 4, bổ sung CHECK cho enum, định dạng số điện thoại, mã phiếu, độ dài lịch hẹn và các chỉ mục | `docs/schema.sql` | Claude nạp tệp vào PostgreSQL 16 trống rồi chạy 10 ca thử (đặt lịch hợp lệ, trùng khung giờ, chồng lấn một phần, lịch liền kề, và các vi phạm CHECK hoặc khóa ngoại); kết quả như kỳ vọng. Tệp `schema.sql` đã được dùng trong báo cáo BT1 nhưng chưa được commit lên repo ở lần nộp, nay đã bổ sung |
 | Claude (Anthropic) | Viết lại `README.md` (mục 1–6) và viết mới `docs/deployment-guide.md` (checklist, bộ kiểm tra nhanh, lỗi thường gặp) | `README.md`, `docs/deployment-guide.md` | Claude chạy đúng các bước 1–6 của README trên PostgreSQL 16 bằng người dùng CSDL không phải superuser, và chạy đoạn smoke test lấy trực tiếp từ guide; kết quả như ghi trong tài liệu |
 | Claude (Anthropic) | Hướng dẫn lệnh `git mv` và `git rm` để đổi tên `download` thành `.gitignore`, `env.example` thành `.env.example` và xóa tệp rỗng `slide bai giang/l` | `.gitignore`, `.env.example` | Sinh viên tự chạy lệnh; xem lại danh sách tệp trên GitHub sau khi push |
-| Claude (Anthropic) | Gộp các bản khai báo thành tệp này | `docs/ai-disclosure.md` | Sinh viên đối chiếu từng dòng với ba bản khai báo gốc |
+| Claude (Anthropic) | Soát nội dung ba bản khai báo tuần 1–3 và đề xuất cách tổ chức hồ sơ khai báo AI; sinh viên tự quyết định tên tệp và tự đổi tên | `docs/ai-disclosure-BT1-SauKhiSuaLoi.md`, `README.md` (bảng mục 3) | Sinh viên đối chiếu từng dòng với ba bản khai báo gốc và kiểm tra các đường dẫn trong README |
 
-**Xác nhận kiểm chứng của sinh viên cho phần B:** sinh viên tự chạy lại các lệnh trong `docs/deployment-guide.md` (Mục 2 đến Mục 4) trên máy của mình.  
+**Xác nhận kiểm chứng của sinh viên:** sinh viên tự chạy lại các lệnh trong `docs/deployment-guide.md` (Mục 2 đến Mục 4) trên máy của mình.  
 Ngày chạy và kết quả: ______________________________
 
 ## III. GHI CHÚ
 
 - Công cụ AI chỉ được dùng để hỗ trợ tham khảo, gợi ý, rà soát và soạn thảo; sinh viên chịu trách nhiệm kiểm tra, đối chiếu và sửa nội dung trước khi nộp.
 - Phần "Đã kiểm chứng" ghi đúng việc đã thực sự được làm, bởi ai (sinh viên hay Claude). Việc Claude chạy thử trong môi trường của Claude không thay cho việc sinh viên tự chạy lại.
-- Bài tập 2 sẽ thêm mục C vào tệp này, với cột nêu rõ cách sinh viên kiểm chứng từng đoạn mã do AI gợi ý.
+- Bài tập 2 sẽ có bản khai báo riêng (`docs/ai-disclosure.md`), với cột nêu rõ cách sinh viên kiểm chứng từng đoạn mã do AI gợi ý.
 
 ## IV. CAM KẾT VỀ LIÊM CHÍNH HỌC THUẬT
 
