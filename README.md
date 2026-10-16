@@ -10,30 +10,54 @@ MVP mô tả và thiết kế luồng L4: quản lý trung tâm xem phiếu chư
 
 Không thuộc MVP: tiếp nhận phiếu (L2), tự động phân công tối ưu, gửi SMS/Zalo, kho linh kiện, báo cáo tổng hợp, quản lý tài khoản đầy đủ, đổi/hủy lịch đã xác nhận, xem lịch tuần của KTV.
 
-## 2. Công nghệ và thiết kế
+## 2. Công nghệ và kiến trúc
 
 - Frontend dự kiến: ReactJS. Backend dự kiến: Node.js + Express, REST/JSON API. Cơ sở dữ liệu: PostgreSQL.
-- Kiến trúc: modular monolith, tách lớp routes/controllers, services, repositories, database.
-- Tài liệu trong `docs/`:
+- Kiến trúc: modular monolith bốn lớp (giao diện – API – nghiệp vụ – truy cập dữ liệu); mã nguồn sẽ tách routes/controllers, services, repositories, database.
+- Chống trùng lịch hẹn bằng ràng buộc `EXCLUDE USING gist` trong PostgreSQL (cần extension `btree_gist`); lỗi 23P01 được ánh xạ sang HTTP 409 `SLOT_CONFLICT`.
+
+## 3. Tài liệu trong `docs/`
 
 | Tệp | Nội dung |
 |---|---|
+| `docs/BT1_2374802010107_VienThanhDat.pdf` | Báo cáo Bài tập 1 (bản nộp) |
 | `docs/srs.md` | SRS rút gọn (7 User Story, 9 FR, 5 NFR, bảng truy vết đầy đủ) |
-| `docs/usecase.drawio` | Use case diagram (7 use case, 3 actor) |
-| `docs/architecture.drawio` | Kiến trúc phân lớp |
-| `docs/erd.drawio` | ERD 6 bảng (3NF) |
-| `docs/schema.sql` | SQL DDL skeleton cho PostgreSQL |
-| `docs/wireframe.png` | Wireframe 3 màn hình (nguồn: `docs/wireframe.drawio`) |
+| `docs/usecase.drawio` · `docs/usecase.png` | Use case diagram (7 use case, 3 actor) |
+| `docs/architecture.drawio` · `docs/architecture.png` | Kiến trúc phân lớp |
+| `docs/erd.drawio` · `docs/erd.png` | ERD 6 bảng (3NF) |
+| `docs/schema.sql` | SQL DDL cho PostgreSQL (6 bảng, ràng buộc CHECK, EXCLUDE chống trùng lịch) |
+| `docs/wireframe.drawio` · `docs/wireframe.png` | Wireframe 3 màn hình |
 | `docs/api-contract.md` | Hợp đồng API (7 endpoint) |
-| `docs/ai-disclosure.md` | Bảng khai báo sử dụng AI |
+| `docs/deployment-guide.md` | Hướng dẫn dựng và kiểm tra môi trường |
+| `docs/ai-disclosure-Tuan1.md` … `Tuan3.md` | Bảng khai báo sử dụng công cụ AI theo từng bài nộp |
 
-## 6. Cấu hình và kiểm chứng
+Các tệp `.drawio` mở bằng [diagrams.net](https://app.diagrams.net) để xem và chỉnh sửa.
 
-Từ thư mục gốc repository:
+## 4. Yêu cầu môi trường
 
-1. Cài Node.js LTS và PostgreSQL; tạo database thử nghiệm trống.
-2. Sao chép `.env.example` thành `.env`, điền thông tin cục bộ; không commit `.env`.
-3. Chạy DDL: `psql "$DATABASE_URL" -f docs/schema.sql` (cần quyền tạo extension `btree_gist`).
-4. Mở các tệp `.drawio` bằng diagrams.net để xem và chỉnh sửa.
+- PostgreSQL 13 trở lên (đã kiểm thử DDL trên PostgreSQL 16). Từ bản 13, `btree_gist` là extension "trusted" nên chủ sở hữu CSDL tạo được mà không cần quyền siêu người dùng.
+- Công cụ dòng lệnh `psql`.
+- Node.js LTS: chưa cần ở giai đoạn thiết kế (BT1); sẽ dùng khi hiện thực backend.
 
-**Trạng thái:** đây là gói thiết kế BT1; chưa có mã backend/frontend. DDL và API cần được kiểm chứng ở giai đoạn triển khai.
+## 5. Cài đặt và kiểm tra thiết kế
+
+Chạy từ thư mục gốc repository (shell kiểu bash). Mỗi bước là một lệnh.
+
+1. Tạo người dùng CSDL (khớp `DATABASE_URL` mẫu trong `.env.example`):
+   `sudo -u postgres psql -c "CREATE USER l4_user WITH PASSWORD 'change_me';"`
+2. Tạo CSDL trống:
+   `sudo -u postgres psql -c "CREATE DATABASE l4_dev OWNER l4_user;"`
+3. Sao chép cấu hình mẫu: `cp .env.example .env`, rồi sửa giá trị cục bộ nếu cần. Không commit `.env` (đã nằm trong `.gitignore`).
+4. Nạp biến môi trường vào shell: `set -a; . ./.env; set +a`
+5. Chạy DDL: `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/schema.sql`
+6. Kiểm tra: `psql "$DATABASE_URL" -c '\dt'`
+
+**Kết quả đúng:** bước 5 không báo lỗi; bước 6 liệt kê 6 bảng `appointment`, `customer`, `technician`, `technician_skill`, `ticket`, `ticket_status_log`. Chạy lại bước 5 trên CSDL đã có bảng sẽ báo `relation ... already exists`; muốn chạy lại, tạo lại CSDL trống (`DROP DATABASE l4_dev;` rồi làm lại bước 2).
+
+## 6. Trạng thái hiện tại
+
+Đây là gói thiết kế BT1 (SRS, use case, kiến trúc, ERD, wireframe, hợp đồng API, DDL, khai báo AI).
+
+- [x] DDL đã được nạp thử trên PostgreSQL 16 và kiểm tra các ràng buộc: CHECK, khóa ngoại, chặn lịch trùng và chồng lấn.
+- [ ] Chưa có mã backend/frontend; API chưa được hiện thực và chưa được kiểm chứng.
+- [ ] `docs/deployment-guide.md` đang được hoàn thiện.
