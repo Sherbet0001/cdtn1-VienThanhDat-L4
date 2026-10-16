@@ -60,4 +60,4 @@ Chạy từ thư mục gốc repository (shell kiểu bash). Mỗi bước là m
 
 - [x] DDL đã được nạp thử trên PostgreSQL 16 và kiểm tra các ràng buộc: CHECK, khóa ngoại, chặn lịch trùng và chồng lấn.
 - [ ] Chưa có mã backend/frontend; API chưa được hiện thực và chưa được kiểm chứng.
-- [ ] `docs/deployment-guide.md` đang được hoàn thiện.
+- [x] `docs/deployment-guide.md`: hướng dẫn dựng CSDL, checklist kiểm tra và bộ kiểm tra nhanh các ràng buộc.
