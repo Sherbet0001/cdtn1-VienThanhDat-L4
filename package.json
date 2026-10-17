@@ -6,9 +6,13 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node --env-file=.env src/server.js",
+    "migrate": "node --env-file=.env src/db/runner.js migrations",
+    "seed": "node --env-file=.env src/db/runner.js seeds",
     "test": "node --test"
   },
-  "engines": { "node": ">=20.6" },
+  "engines": {
+    "node": ">=20.6"
+  },
   "dependencies": {
     "express": "4.21.2",
     "pg": "8.13.1"
