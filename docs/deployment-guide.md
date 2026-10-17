@@ -50,7 +50,7 @@ INSERT INTO customer(full_name,phone) VALUES ('Nguyen Van An','0901234567');
 INSERT INTO technician(full_name,center_id,level) VALUES ('Tran Minh Khoa',1,'CAO_CAP');
 INSERT INTO technician_skill VALUES (1,'MAN_HINH',4);
 INSERT INTO ticket(ticket_code,customer_id,center_id,device_name,issue_category,priority,received_at,due_date)
- VALUES ('BH001287/2026',1,1,'iPhone 14','MAN_HINH','CAO','2026-10-05 10:30+07','2026-10-06 10:30+07');
+ VALUES ('BH-001287/2026',1,1,'iPhone 14','MAN_HINH','CAO','2026-10-05 10:30+07','2026-10-06 10:30+07');
 
 \echo '[1] Đặt lịch hợp lệ 09:00-09:30: thành công'
 INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
@@ -71,7 +71,7 @@ INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,e
 INSERT INTO technician_skill VALUES (1,'PIN',6);
 \echo '[7] Hạn cam kết không sau thời điểm nhận: lỗi 23514 ck_ticket_due'
 INSERT INTO ticket(ticket_code,customer_id,center_id,device_name,issue_category,priority,received_at,due_date)
- VALUES ('BH000002/2026',1,1,'X','PIN','THAP','2026-10-05 10:30+07','2026-10-05 10:30+07');
+ VALUES ('BH-000002/2026',1,1,'X','PIN','THAP','2026-10-05 10:30+07','2026-10-05 10:30+07');
 \echo '[8] Số điện thoại sai định dạng: lỗi 23514'
 INSERT INTO customer(full_name,phone) VALUES ('B','12345');
 \echo '[9] Kỹ thuật viên không tồn tại: lỗi 23503 (khóa ngoại)'

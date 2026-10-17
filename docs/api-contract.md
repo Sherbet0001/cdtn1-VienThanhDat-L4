@@ -42,7 +42,7 @@ Response 200:
   "page": 1, "limit": 20, "total": 12,
   "items": [
     {
-      "ticket_id": 1287, "ticket_code": "BH001287/2026",
+      "ticket_id": 1287, "ticket_code": "BH-001287/2026",
       "customer_name": "Nguyễn Văn An", "customer_phone": "0901234567",
       "device_name": "iPhone 14 128GB", "issue_category": "MAN_HINH",
       "priority": "CAO", "status": "MOI",
@@ -94,7 +94,7 @@ Response 201:
 
 ```json
 {
-  "ticket_id": 1287, "ticket_code": "BH001287/2026",
+  "ticket_id": 1287, "ticket_code": "BH-001287/2026",
   "status": "DA_PHAN_CONG", "technician_id": 12,
   "assigned_at": "2026-10-05T11:02:15+07:00", "assigned_by": 3
 }
@@ -146,7 +146,7 @@ Response 200:
   "technician_id": 12,
   "tickets": [
     {
-      "ticket_id": 1287, "ticket_code": "BH001287/2026", "status": "DA_PHAN_CONG",
+      "ticket_id": 1287, "ticket_code": "BH-001287/2026", "status": "DA_PHAN_CONG",
       "issue_category": "MAN_HINH", "customer_phone": "090****567",
       "due_date": "2026-10-06T10:30:00+07:00", "due_soon": true,
       "appointments": [
@@ -168,7 +168,7 @@ Response 200:
 Request:
 
 ```json
-{ "ticket_code": "BH001287/2026", "phone": "0901234567", "type": "GIAO_MAY", "start_at": "2026-10-12T09:00:00+07:00" }
+{ "ticket_code": "BH-001287/2026", "phone": "0901234567", "type": "GIAO_MAY", "start_at": "2026-10-12T09:00:00+07:00" }
 ```
 
 Response 201:
@@ -176,7 +176,7 @@ Response 201:
 ```json
 {
   "appointment_id": 501, "appointment_code": "LH000501/2026",
-  "ticket_code": "BH001287/2026", "technician_name": "Trần Minh Khoa",
+  "ticket_code": "BH-001287/2026", "technician_name": "Trần Minh Khoa",
   "type": "GIAO_MAY", "status": "DA_XAC_NHAN",
   "start_at": "2026-10-12T09:00:00+07:00", "end_at": "2026-10-12T09:30:00+07:00"
 }
@@ -197,7 +197,7 @@ Lưu ý (FR9, UC6 bước 5a): phản hồi 409 SLOT_CONFLICT không kèm khung 
 Request:
 
 ```json
-{ "ticket_code": "BH001287/2026", "phone": "0901234567", "type": "GIAO_MAY", "from_date": "2026-10-12", "limit": 3 }
+{ "ticket_code": "BH-001287/2026", "phone": "0901234567", "type": "GIAO_MAY", "from_date": "2026-10-12", "limit": 3 }
 ```
 
 limit: 3–10, mặc định 3. Trả các khung trống gần nhất tính từ from_date, trong 7 ngày.
@@ -206,7 +206,7 @@ Response 200:
 
 ```json
 {
-  "ticket_code": "BH001287/2026",
+  "ticket_code": "BH-001287/2026",
   "slots": [
     { "start_at": "2026-10-12T09:30:00+07:00", "end_at": "2026-10-12T10:00:00+07:00" },
     { "start_at": "2026-10-12T10:00:00+07:00", "end_at": "2026-10-12T10:30:00+07:00" },
@@ -232,7 +232,7 @@ Response 200:
 | page | 1 | Không | số nguyên | ≥ 1, mặc định 1 |
 | limit | 1 | Không | số nguyên | 1–100, mặc định 20 |
 | from, to | 5 | Không | ngày YYYY-MM-DD | from ≤ to |
-| ticket_code | 6, 7 | Có | chuỗi | Đúng dạng BH + 6 chữ số + / + 4 chữ số; tồn tại |
+| ticket_code | 6, 7 | Có | chuỗi | Đúng dạng BH- + 6 chữ số + / + 4 chữ số; tồn tại |
 | phone | 6, 7 | Có | chuỗi | Chuẩn hóa về 10 chữ số bắt đầu bằng 0 (QT-02); phải khớp phiếu |
 | type | 6, 7 | Có | chuỗi | GIAO_MAY hoặc NHAN_MAY |
 | start_at | 6 | Có | ISO 8601 | Mốc :00/:30; không ở quá khứ; thứ Hai–thứ Bảy; từ 08:00 đến 17:00 (kết thúc muộn nhất 17:30); không chồng lịch |

@@ -59,7 +59,7 @@ CREATE TABLE technician_skill (
 -- ---------------------------------------------------------------------------
 CREATE TABLE ticket (
     ticket_id      BIGSERIAL    PRIMARY KEY,
-    ticket_code    VARCHAR(20)  NOT NULL UNIQUE,                    -- dạng BH001287/2026
+    ticket_code    VARCHAR(20)  NOT NULL UNIQUE,                    -- dạng BH-001287/2026
     customer_id    BIGINT       NOT NULL REFERENCES customer (customer_id),
     center_id      INT          NOT NULL,
     device_name    VARCHAR(100) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE ticket (
     received_at    TIMESTAMPTZ  NOT NULL,
     due_date       TIMESTAMPTZ  NOT NULL,
     CONSTRAINT ck_ticket_due      CHECK (due_date > received_at),
-    CONSTRAINT ck_ticket_code     CHECK (ticket_code ~ '^BH[0-9]{6}/[0-9]{4}$'),
+    CONSTRAINT ck_ticket_code     CHECK (ticket_code ~ '^BH-[0-9]{6}/[0-9]{4}$'),
     CONSTRAINT ck_ticket_category CHECK (issue_category IN
         ('MAN_HINH', 'PIN', 'SAC', 'PHAN_MEM', 'NUOC_VAO', 'KHAC')),
     CONSTRAINT ck_ticket_priority CHECK (priority IN ('CAO', 'TRUNG_BINH', 'THAP')),

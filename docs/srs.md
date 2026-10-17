@@ -81,13 +81,13 @@
 
 **US3** – Là quản lý trung tâm, tôi muốn gán một KTV cho phiếu để mỗi phiếu có đúng một người chịu trách nhiệm.
 
-- AC1. GIVEN phiếu BH001287/2026 ở trạng thái MỚI và KTV Trần Minh Khoa (cùng trung tâm, thành thạo MAN_HINH = 4), WHEN quản lý chọn Khoa và xác nhận, THEN phiếu chuyển ĐÃ PHÂN CÔNG, gắn với Khoa, và có một dòng log trạng thái trước/sau, thời điểm, người thực hiện.
+- AC1. GIVEN phiếu BH-001287/2026 ở trạng thái MỚI và KTV Trần Minh Khoa (cùng trung tâm, thành thạo MAN_HINH = 4), WHEN quản lý chọn Khoa và xác nhận, THEN phiếu chuyển ĐÃ PHÂN CÔNG, gắn với Khoa, và có một dòng log trạng thái trước/sau, thời điểm, người thực hiện.
 - AC2. (ngoại lệ) GIVEN KTV có mức thành thạo 2 với nhóm sự cố của phiếu, WHEN quản lý cố gán, THEN hệ thống từ chối, nêu lý do theo QT-08 và phiếu giữ nguyên MỚI.
 - AC3. (ngoại lệ) GIVEN hai quản lý cùng mở một phiếu, WHEN người thứ hai xác nhận sau khi người thứ nhất đã gán, THEN yêu cầu thứ hai bị từ chối, không ghi đè KTV đã gán.
 
 **US6** – Là khách hàng, tôi muốn đặt lịch giao – nhận máy vào khung giờ KTV còn rảnh để không phải chờ đợi hoặc đến nhầm giờ.
 
-- AC1. GIVEN phiếu BH001287/2026 đã gán cho Khoa và Khoa rảnh 09:00–09:30 ngày 12/10/2026, WHEN khách nhập đúng mã phiếu + số điện thoại và chọn khung giờ đó, THEN hệ thống lưu lịch hẹn ĐÃ XÁC NHẬN và hiển thị mã lịch hẹn, ngày giờ.
+- AC1. GIVEN phiếu BH-001287/2026 đã gán cho Khoa và Khoa rảnh 09:00–09:30 ngày 12/10/2026, WHEN khách nhập đúng mã phiếu + số điện thoại và chọn khung giờ đó, THEN hệ thống lưu lịch hẹn ĐÃ XÁC NHẬN và hiển thị mã lịch hẹn, ngày giờ.
 - AC2. (ngoại lệ) GIVEN Khoa đã có lịch 09:00–09:30 ngày 12/10/2026, WHEN khách khác chọn đúng khung đó, THEN hệ thống từ chối, không lưu và thông báo khung giờ đã kín.
 - AC3. (ngoại lệ) GIVEN khách chọn khung giờ vào Chủ nhật, bắt đầu sau 17:00 hoặc không nằm trên mốc :00/:30, WHEN bấm xác nhận, THEN hệ thống từ chối và nêu khung giờ hợp lệ (BR-L4-01).
 

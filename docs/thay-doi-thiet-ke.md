@@ -2,7 +2,7 @@
 
 - **Dự án:** CDTN1 – Viên Thành Đạt (MSSV 2374802010107) – Luồng L4, Track SE
 - **Phạm vi:** Điều chỉnh sau phản hồi Bài tập 1 và chuẩn bị cho Bài tập 2
-- **Cập nhật:** 17/10/2026
+- **Cập nhật:** 17/10/2026 (thêm TD-14)
 
 ## 1. Cách ghi
 
@@ -29,6 +29,7 @@
 | TD-11 | Trạng thái phiếu cho phép giao máy và nhận máy | SỬA (tự rà soát) | `docs/srs.md` |
 | TD-12 | Giờ hợp lệ của lịch hẹn khớp BR-L4-01 | SỬA (tự rà soát) | `docs/srs.md` |
 | TD-13 | Luồng gợi ý khung giờ sau lỗi 409 | SỬA (tự rà soát) | `docs/api-contract.md` |
+| TD-14 | Mã phiếu theo case study: `BH-000123/2026` | SỬA (phát hiện khi làm BT2) | `docs/schema.sql`, `docs/srs.md`, `docs/api-contract.md`, `docs/wireframe.drawio`, `docs/deployment-guide.md` |
 
 ## 3. Sau phản hồi Bài tập 1 của giảng viên (17/10/2026)
 
@@ -46,7 +47,7 @@
 - **Quyết định:** SỬA. Thêm `docs/schema.sql` dựng từ DDL trong báo cáo BT1 (Mục 4). So với đoạn rút gọn trong PDF, bản đầy đủ có thêm các ràng buộc CHECK (enum trạng thái, nhóm sự cố, mức ưu tiên, loại lịch hẹn; định dạng số điện thoại và mã phiếu; độ dài lịch hẹn 30 phút) và chỉ mục `ix_ticket_technician`, `ix_status_log_ticket`, `ix_appointment_technician_start`, đúng như PDF đã ghi ("bản đầy đủ có CHECK enum và chỉ mục"). Bảng, cột, khóa ngoại giữ nguyên theo ERD.
 - **Lý do:** Báo cáo dẫn tới tệp này nên tệp phải có trong repo để người khác dựng lại được CSDL.
 - **Ảnh hưởng:** `README.md` (mục 4–5) và `docs/deployment-guide.md` hướng dẫn dựng CSDL từ tệp này.
-- **Trạng thái:** Đã nạp thành công vào PostgreSQL 16 trống và chạy lại các bước README từ bản clone mới (16–17/10/2026). Giá trị `level` của kỹ thuật viên (`SO_CAP`, `TRUNG_CAP`, `CAO_CAP`) trong đó: `TRUNG_CAP` và `CAO_CAP` có trong hợp đồng API, `SO_CAP` là giả định, cần đối chiếu với case study.
+- **Trạng thái:** Đã nạp thành công vào PostgreSQL 16 trống và chạy lại các bước README từ bản clone mới (16–17/10/2026). Ba giá trị `level` của kỹ thuật viên (`SO_CAP`, `TRUNG_CAP`, `CAO_CAP`) khớp `technicians.csv` của bộ dữ liệu mẫu (đối chiếu ngày 17/10/2026).
 
 ### TD-03 — Đoạn DDL trong PDF bị vỡ khoảng trắng
 
@@ -140,9 +141,20 @@ Nguồn: tự rà soát chéo SRS, hợp đồng API, ERD và báo cáo BT1, kh�
 - **Ảnh hưởng:** `docs/api-contract.md` (trước mục 2.7).
 - **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
 
-## 5. Điểm còn mở
+## 5. Phát hiện khi bắt đầu Bài tập 2 (17/10/2026)
 
-1. Giá trị `SO_CAP` của `technician.level` là giả định, cần đối chiếu với case study.
-2. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03) và các làm rõ ở Mục 4.
-3. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
-4. Test đồng thời TC-11 chưa làm (TD-08).
+Nguồn: đối chiếu `docs/schema.sql` với case study và bộ dữ liệu mẫu `tickets_history.csv` khi viết migration và seed.
+
+### TD-14 — Mã phiếu theo case study: `BH-000123/2026`
+
+- **Nguồn:** case study (mô tả bảng `ticket`) quy định mã phiếu dạng `BH-000123/2026`, có dấu gạch ngang; cả 7.800 mã trong `tickets_history.csv` đúng dạng này. Gói BT1 viết `BH001287/2026` (thiếu dấu gạch ngang), nên ràng buộc `ck_ticket_code` sẽ từ chối toàn bộ dữ liệu mẫu.
+- **Quyết định:** SỬA. Đổi mã mẫu thành `BH-001287/2026` và ràng buộc thành `^BH-[0-9]{6}/[0-9]{4}$`; độ dài cột `VARCHAR(20)` giữ nguyên.
+- **Lý do:** Lỗi chép sai định dạng ở BT1; thiết kế phải khớp case study và dữ liệu thật.
+- **Ảnh hưởng:** `docs/schema.sql`, `docs/srs.md` (ví dụ ở US2, US6), `docs/api-contract.md` (ví dụ và quy tắc kiểm tra `ticket_code`), `docs/wireframe.drawio`, `docs/deployment-guide.md` (smoke test). `docs/wireframe.png` và PDF BT1 còn hiển thị mã cũ cho đến khi xuất lại.
+- **Trạng thái:** Đã sửa văn bản và `.drawio`; chưa xuất lại `wireframe.png`.
+
+## 6. Điểm còn mở
+
+1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
+2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
+3. Test đồng thời TC-11 chưa làm (TD-08).
