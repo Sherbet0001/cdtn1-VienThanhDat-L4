@@ -2,7 +2,7 @@
 
 - **Dự án:** CDTN1 – Viên Thành Đạt (MSSV 2374802010107) – Luồng L4, Track SE
 - **Phạm vi:** Điều chỉnh sau phản hồi Bài tập 1 và chuẩn bị cho Bài tập 2
-- **Cập nhật:** 17/10/2026 (thêm TD-14)
+- **Cập nhật:** 17/10/2026 (thêm TD-14 đến TD-18)
 
 ## 1. Cách ghi
 
@@ -30,6 +30,10 @@
 | TD-12 | Giờ hợp lệ của lịch hẹn khớp BR-L4-01 | SỬA (tự rà soát) | `docs/srs.md` |
 | TD-13 | Luồng gợi ý khung giờ sau lỗi 409 | SỬA (tự rà soát) | `docs/api-contract.md` |
 | TD-14 | Mã phiếu theo case study: `BH-000123/2026` | SỬA (phát hiện khi làm BT2) | `docs/schema.sql`, `docs/srs.md`, `docs/api-contract.md`, `docs/wireframe.drawio`, `docs/deployment-guide.md` |
+| TD-15 | Thêm 5 endpoint CRUD `/api/technicians` | SỬA (bổ sung cho BT2) | `src/routes/`, `src/services/`, `src/repositories/`, `src/validators/` |
+| TD-16 | Xóa mềm kỹ thuật viên và quy tắc "đang giữ phiếu thì không ngừng hoạt động" | SỬA (bổ sung cho BT2) | `src/services/technician.service.js` |
+| TD-17 | Giữ 6 bảng của ERD; không thêm bảng danh mục từ bộ dữ liệu mẫu | GIỮ NGUYÊN | `migrations/001_init.sql`, `seeds/` |
+| TD-18 | Chưa làm xác thực JWT ở buổi 8 | HOÃN | `src/app.js`, `src/routes/` |
 
 ## 3. Sau phản hồi Bài tập 1 của giảng viên (17/10/2026)
 
@@ -141,9 +145,9 @@ Nguồn: tự rà soát chéo SRS, hợp đồng API, ERD và báo cáo BT1, kh�
 - **Ảnh hưởng:** `docs/api-contract.md` (trước mục 2.7).
 - **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
 
-## 5. Phát hiện khi bắt đầu Bài tập 2 (17/10/2026)
+## 5. Thay đổi khi hiện thực Bài tập 2 (buổi 8, 17/10/2026)
 
-Nguồn: đối chiếu `docs/schema.sql` với case study và bộ dữ liệu mẫu `tickets_history.csv` khi viết migration và seed.
+Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫu và đề bài BT2 khi viết migration, seed và thực thể đầu tiên.
 
 ### TD-14 — Mã phiếu theo case study: `BH-000123/2026`
 
@@ -153,8 +157,42 @@ Nguồn: đối chiếu `docs/schema.sql` với case study và bộ dữ liệu 
 - **Ảnh hưởng:** `docs/schema.sql`, `docs/srs.md` (ví dụ ở US2, US6), `docs/api-contract.md` (ví dụ và quy tắc kiểm tra `ticket_code`), `docs/wireframe.drawio`, `docs/deployment-guide.md` (smoke test). `docs/wireframe.png` và PDF BT1 còn hiển thị mã cũ cho đến khi xuất lại.
 - **Trạng thái:** Đã sửa văn bản và `.drawio`; chưa xuất lại `wireframe.png`.
 
+### TD-15 — Thêm 5 endpoint CRUD `/api/technicians`
+
+- **Nguồn:** đề BT2 yêu cầu ít nhất hai thực thể có đủ tạo–đọc–sửa–xóa qua ba lớp; hợp đồng API BT1 chỉ có 7 endpoint nghiệp vụ, không có CRUD kỹ thuật viên.
+- **Quyết định:** SỬA. Thêm `GET /api/technicians`, `GET /api/technicians/{id}`, `POST /api/technicians`, `PUT /api/technicians/{id}`, `DELETE /api/technicians/{id}`. Phản hồi dùng trường snake_case và lỗi dạng `{ "error": { "code", "message", "field" } }` đúng quy ước chung của BT1; danh sách trả `{ items, limit, offset }`. Mã lỗi mới: `TECHNICIAN_NOT_FOUND` (404) và `TECHNICIAN_HAS_OPEN_TICKETS` (409), cộng `VALIDATION_ERROR` (400) đã có.
+- **Lý do:** Thực thể kỹ thuật viên có sẵn trong ERD và trong dữ liệu mẫu (38 dòng), nên là thực thể đầu tiên dễ kiểm chứng; bảy endpoint nghiệp vụ của BT1 vẫn giữ nguyên, thực hiện ở các buổi sau.
+- **Ảnh hưởng:** `src/routes/technician.routes.js`, `src/services/technician.service.js`, `src/repositories/technician.repository.js`, `src/validators/technician.validator.js`; `docs/api-contract.md` chưa cập nhật phần này.
+- **Trạng thái:** Đã viết và có 25 kiểm thử đơn vị PASS (service, validator, routes, bộ chạy migration). Các câu SQL của repository đã chạy thử trên PostgreSQL 16; chạy đủ qua Express trên máy sinh viên chưa thực hiện.
+
+### TD-16 — Xóa mềm kỹ thuật viên và quy tắc đang giữ phiếu
+
+- **Nguồn:** QT-13 (không xóa vật lý dữ liệu) mâu thuẫn với yêu cầu "xóa" trong CRUD của BT2.
+- **Quyết định:** SỬA. `DELETE /api/technicians/{id}` chỉ đặt `is_active = false`; dòng dữ liệu vẫn còn. Nếu kỹ thuật viên đang giữ phiếu (trạng thái `DA_PHAN_CONG`, `DANG_XU_LY` hoặc `CHO_LINH_KIEN`, theo định nghĩa ở TD-10) thì trả 409 `TECHNICIAN_HAS_OPEN_TICKETS`, kèm số phiếu đang giữ.
+- **Lý do:** Phiếu đang xử lý không được mất người phụ trách; cũng khớp FR2 (chỉ gán cho KTV đang hoạt động).
+- **Ảnh hưởng:** `src/services/technician.service.js` (quy tắc), `src/repositories/technician.repository.js` (`countOpenTickets`).
+- **Trạng thái:** Đã kiểm thử đơn vị cả biên (giữ 0 phiếu thì cho, giữ 1 phiếu thì chặn). Quy tắc "đổi trung tâm khi đang giữ phiếu" chưa làm.
+
+### TD-17 — Giữ 6 bảng của ERD, không thêm bảng danh mục
+
+- **Nguồn:** hướng dẫn bộ dữ liệu mẫu gợi ý nạp `service_centers.csv` và `issue_categories.csv` làm bảng danh mục; ERD BT1 không có hai bảng này.
+- **Quyết định:** GIỮ NGUYÊN. `center_id` vẫn là số nguyên và nhóm sự cố vẫn là giá trị CHECK; seed chỉ nạp `technician` (38 dòng, giữ nguyên `technician_id`) và `technician_skill` (159 dòng, đổi `category_id` sang tên nhóm sự cố). Cột `technician_code` của dữ liệu mẫu không lưu.
+- **Lý do:** Phạm vi L4 không quản lý trung tâm và danh mục (đã ghi ở SRS Mục 1); thêm hai bảng chỉ để tra tên mà không có chức năng nào dùng.
+- **Ảnh hưởng:** Không đổi ERD và DDL. Ánh xạ cột ghi ở đầu `seeds/001_technicians.sql` và `seeds/002_technician_skills.sql`.
+- **Trạng thái:** Seed đã chạy hai lần trên PostgreSQL 16: giữ nguyên 38 và 159 dòng.
+
+### TD-18 — Chưa làm xác thực JWT ở buổi 8
+
+- **Nguồn:** hợp đồng API BT1 quy định mọi endpoint nhân viên dùng `Authorization: Bearer <token>`.
+- **Quyết định:** HOÃN. Các endpoint `/api/technicians` hiện chưa yêu cầu token; xác thực và phân quyền làm sau.
+- **Lý do:** Buổi 8 chỉ yêu cầu module cốt lõi đầu tiên chạy được; cơ chế đăng nhập không phải phần được kiểm chứng ở bước này.
+- **Ảnh hưởng:** `src/app.js`, `src/routes/`. Chỉ chạy cục bộ; không triển khai công khai khi chưa có xác thực.
+- **Trạng thái:** Chưa làm.
+
 ## 6. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
 3. Test đồng thời TC-11 chưa làm (TD-08).
+4. Thực thể CRUD thứ hai (đề BT2 yêu cầu từ hai thực thể) chưa làm; chờ hướng dẫn của giảng viên cho các buổi sau.
+5. `docs/api-contract.md` chưa có mục cho `/api/technicians` (TD-15).

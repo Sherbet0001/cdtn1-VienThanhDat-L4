@@ -15,30 +15,27 @@ Tài liệu này dùng để dựng cơ sở dữ liệu của gói thiết kế
 
 ## 2. Dựng cơ sở dữ liệu
 
-Thực hiện đúng các bước 1–6 ở Mục 5 của `README.md`. Tóm tắt:
+Thực hiện đúng các bước 1–6 ở Mục 3 của `README.md` (tạo người dùng và CSDL, sao chép `.env`, `npm install`, `npm run migrate`, `npm run seed`). Sau đó kiểm tra:
 
 ```
-sudo -u postgres psql -c "CREATE USER l4_user WITH PASSWORD 'change_me';"
-sudo -u postgres psql -c "CREATE DATABASE l4_dev OWNER l4_user;"
-cp .env.example .env
-set -a; . ./.env; set +a
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/schema.sql
 psql "$DATABASE_URL" -c '\dt'
 ```
 
-Đạt khi bước tạo bảng không báo lỗi và `\dt` liệt kê đúng 6 bảng: `appointment`, `customer`, `technician`, `technician_skill`, `ticket`, `ticket_status_log`.
+Đạt khi migration không báo lỗi và `\dt` liệt kê 6 bảng của L4 (`appointment`, `customer`, `technician`, `technician_skill`, `ticket`, `ticket_status_log`) cùng bảng `schema_migrations`. `docs/schema.sql` vẫn là bản DDL BT1 để đọc; `migrations/001_init.sql` chỉ khác ở chỗ thêm `IF NOT EXISTS`.
+
+Các lệnh `psql "$DATABASE_URL"` trong tài liệu này viết cho bash. Trên PowerShell, đặt trước `$env:DATABASE_URL = 'postgres://l4_user:change_me@localhost:5432/l4_dev'` và thay `"$DATABASE_URL"` bằng `$env:DATABASE_URL`. Bộ smoke test ở Mục 4 dùng heredoc nên chạy trong Git Bash hoặc WSL.
 
 ## 3. Checklist kiểm tra
 
 | # | Việc cần kiểm tra | Cách kiểm tra | Đạt khi |
 |---|---|---|---|
-| 1 | Có 6 bảng | `psql "$DATABASE_URL" -c '\dt'` | Liệt kê đủ 6 bảng |
+| 1 | Có 6 bảng | `psql "$DATABASE_URL" -c '\dt'` | Liệt kê 6 bảng của L4 (và `schema_migrations`) |
 | 2 | Extension `btree_gist` đã bật | `psql "$DATABASE_URL" -c '\dx'` | Có dòng `btree_gist` |
 | 3 | Ràng buộc chống trùng lịch tồn tại | `psql "$DATABASE_URL" -c '\d appointment'` | Có `ex_appointment_no_overlap` |
 | 4 | Chỉ mục cho FR1, FR2/FR6, FR8 | `psql "$DATABASE_URL" -c '\di'` | Có `ix_ticket_unassigned`, `ix_ticket_technician`, `ix_appointment_technician_start` |
 | 5 | Các ràng buộc hoạt động | Chạy bộ kiểm tra nhanh ở Mục 4 | Mỗi ca cho đúng kết quả mong đợi |
 | 6 | Sơ đồ mở được | Mở `docs/usecase.drawio`, `architecture.drawio`, `erd.drawio`, `wireframe.drawio` bằng diagrams.net | Không lỗi, bố cục không vỡ |
-| 7 | Không có bí mật trong repo | `git ls-files \| grep -E '^\.env$'` | Không in ra gì (chỉ có `.env.example`) |
+| 7 | Không có bí mật trong repo | `git ls-files .env` | Không in ra gì (chỉ có `.env.example`) |
 
 ## 4. Bộ kiểm tra nhanh ràng buộc (smoke test)
 
