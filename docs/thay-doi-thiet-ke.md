@@ -1,95 +1,148 @@
-# Nhật ký điều chỉnh thiết kế
+# Nhật ký thay đổi thiết kế
 
-- **Dự án:** CDTN1 – Viên Thành Đạt – L4
-- **Tài liệu:** Nhật ký quyết định điều chỉnh thiết kế
-- **Phạm vi:** Tiếp thu góp ý BT1 và chuẩn bị triển khai BT2
-- **Trạng thái:** Bản ghi nhận quyết định thiết kế
+- **Dự án:** CDTN1 – Viên Thành Đạt (MSSV 2374802010107) – Luồng L4, Track SE
+- **Phạm vi:** Điều chỉnh sau phản hồi Bài tập 1 và chuẩn bị cho Bài tập 2
+- **Cập nhật:** 17/10/2026
 
-## 1. Mục đích
+## 1. Cách ghi
 
-Tài liệu ghi lại các điều chỉnh thiết kế sau khi rà soát BT1, các quyết định giữ nguyên thiết kế có căn cứ và những điểm cần xác minh trước khi triển khai BT2.
+- Mục "Phản hồi của GV" chỉ chép lại đúng nhận xét của giảng viên cho BT1 (điểm 8,5/10, nhận ngày 17/10/2026). Việc do sinh viên tự phát hiện được ghi ở Mục 4 với "Nguồn: tự rà soát".
+- Mỗi thay đổi có mã TD-xx và năm dòng: phản hồi hoặc nguồn, quyết định, lý do, ảnh hưởng, trạng thái.
+- "Trạng thái" chỉ ghi đã kiểm chứng khi đã thực sự chạy hoặc kiểm tra; việc chưa làm ghi rõ là chưa làm.
 
-Mỗi quyết định sử dụng mã TD-xx và ghi rõ phản hồi, quyết định, lý do, ảnh hưởng và trạng thái. Những nội dung chưa có đủ bằng chứng được đánh dấu cần xác minh, không coi là lỗi đã được kết luận hoặc quyết định đã được giảng viên phê duyệt.
+**Không thay đổi:** kiến trúc modular monolith bốn lớp, ERD 6 bảng và các khóa ngoại, 7 endpoint API, NFR1–NFR5, bảng truy vết FR–US–UC–API–NFR–test case. Các thay đổi dưới đây là bổ sung và làm rõ, không đổi hướng thiết kế.
 
-## 2. Nhật ký quyết định thiết kế
+## 2. Tóm tắt
 
-### TD-01 — Bổ sung chú thích và phạm vi ngoài hệ thống trên sơ đồ kiến trúc
+| Mã | Nội dung | Quyết định | Tệp bị ảnh hưởng |
+|---|---|---|---|
+| TD-01 | Sơ đồ kiến trúc: chú thích ký hiệu và phần ngoài phạm vi | SỬA | `docs/architecture.drawio`, `docs/architecture.png` |
+| TD-02 | Thêm `docs/schema.sql` vào repo | SỬA | `docs/schema.sql`, `README.md`, `docs/deployment-guide.md` |
+| TD-03 | DDL trong PDF bị vỡ khoảng trắng | GIỮ PDF đã nộp, sửa ở repo | `docs/schema.sql` |
+| TD-04 | Thiếu `.gitignore` | SỬA | `.gitignore` |
+| TD-05 | `env.example` sai tên | SỬA | `.env.example` |
+| TD-06 | Commit "Add files via upload" | GIỮ lịch sử cũ, đổi cách làm từ nay | Quy trình commit BT2 |
+| TD-07 | Xóa slide bài giảng và case study khỏi repo public | SỬA | Thư mục slide (đã xóa) |
+| TD-08 | Gợi ý BT2: `schema.sql`, thử EXCLUDE, test đồng thời TC-11 | ÁP DỤNG CHO BT2 | `tests/`, migration |
+| TD-09 | Bổ sung QT-02 vào SRS | SỬA (tự rà soát) | `docs/srs.md` |
+| TD-10 | Định nghĩa "số phiếu đang giữ" | SỬA (tự rà soát) | `docs/srs.md`, `docs/api-contract.md` |
+| TD-11 | Trạng thái phiếu cho phép giao máy và nhận máy | SỬA (tự rà soát) | `docs/srs.md` |
+| TD-12 | Giờ hợp lệ của lịch hẹn khớp BR-L4-01 | SỬA (tự rà soát) | `docs/srs.md` |
+| TD-13 | Luồng gợi ý khung giờ sau lỗi 409 | SỬA (tự rà soát) | `docs/api-contract.md` |
 
-- **Phản hồi:** Sơ đồ kiến trúc BT1 thiếu chú thích ký hiệu và chưa thể hiện rõ các chức năng nằm ngoài phạm vi triển khai.
-- **Quyết định:** Bổ sung khung chú thích ký hiệu và khung "NGOÀI PHẠM VI – không xây dựng trong MVP L4".
-- **Lý do:** Giúp người đọc hiểu các thành phần, kho dữ liệu, quan hệ gọi và ranh giới trách nhiệm của hệ thống; tránh hiểu nhầm các chức năng chưa triển khai là thành phần thuộc MVP.
-- **Ảnh hưởng:** Cập nhật `docs/architecture.png` và `docs/architecture.drawio`; nội dung phạm vi phải nhất quán với SRS.
-- **Trạng thái:** Đã cập nhật sơ đồ theo quá trình khắc phục BT1. Cần mở file nguồn bằng diagrams.net để kiểm tra hiển thị thực tế.
+## 3. Sau phản hồi Bài tập 1 của giảng viên (17/10/2026)
 
-### TD-02 — Duy trì schema CSDL trong repository
+### TD-01 — Sơ đồ kiến trúc: chú thích ký hiệu và phần ngoài phạm vi
 
-- **Phản hồi:** Cần có tệp schema SQL trong repository để kiểm tra thiết kế dữ liệu và hỗ trợ triển khai.
-- **Quyết định:** Duy trì `docs/schema.sql` làm nguồn DDL cần được đối chiếu và sử dụng khi xây dựng migration.
-- **Lý do:** Có thể kiểm tra bảng, khóa, ràng buộc và chỉ mục trực tiếp thay vì chỉ dựa vào DDL trong PDF.
-- **Ảnh hưởng:** BT2 sử dụng schema làm căn cứ xây dựng migration và kiểm thử tính toàn vẹn dữ liệu.
-- **Trạng thái:** Đã xác nhận tệp tồn tại trong repository ở lần rà soát trước. Cần tiếp tục đối chiếu schema với SRS và mô hình dữ liệu.
+- **Phản hồi của GV:** "Sơ đồ kiến trúc (Hình 2) chưa có chú thích ký hiệu và chưa có dòng ghi rõ phần NGOÀI PHẠM VI (ví dụ L2 tiếp nhận phiếu, SMS/Zalo, quản lý tài khoản)."
+- **Quyết định:** SỬA. Thêm khung "Chú thích ký hiệu" (lớp, thành phần, kho dữ liệu, quyết định gắn NFR, ghi chú triển khai, mũi tên gọi, phần ngoài phạm vi) và khung "NGOÀI PHẠM VI – không xây dựng trong MVP L4". Nội dung khung lấy nguyên từ mục "Chủ ý KHÔNG làm" của SRS (L2 tiếp nhận phiếu, quản lý tài khoản và phân quyền chi tiết, SMS/Zalo, L5 kho linh kiện, L6 báo cáo, tự động phân công tối ưu, đổi hoặc hủy lịch đã xác nhận, xem lịch tuần); không thêm hay bớt chức năng nào.
+- **Lý do:** Người đọc cần biết mỗi ký hiệu nghĩa là gì và đâu là ranh giới của MVP để không nhầm chức năng chưa làm với thành phần có trong hệ thống.
+- **Ảnh hưởng:** `docs/architecture.drawio` và `docs/architecture.png` (ảnh vẽ lại từ file nguồn). Hình 2 trong PDF BT1 đã nộp vẫn là bản cũ.
+- **Trạng thái:** Đã cập nhật và đẩy lên repo. File `.drawio` đã kiểm tra là XML hợp lệ; còn cần mở bằng diagrams.net để xem hiển thị thực tế.
 
-### TD-03 — Giữ các ràng buộc kiểm tra dữ liệu hiện có
+### TD-02 — Thêm `docs/schema.sql` vào repo
 
-- **Phản hồi:** Thiết kế cần bảo đảm dữ liệu lưu trữ tuân thủ các quy tắc nghiệp vụ.
-- **Quyết định:** Tạm giữ các ràng buộc `ck_customer_phone`, `ck_technician_level` và `ck_ticket_code`; chỉ điều chỉnh khi phát hiện mâu thuẫn với đặc tả.
-- **Lý do:** Ràng buộc tại CSDL giúp ngăn dữ liệu không hợp lệ ngay cả khi thao tác không đi qua giao diện người dùng.
-- **Ảnh hưởng:** Các thao tác tạo và cập nhật dữ liệu trong BT2 phải đáp ứng các điều kiện đã định nghĩa.
-- **Trạng thái:** Đã xác minh tên các ràng buộc trong schema ở lần kiểm tra trước; cần đối chiếu giá trị hợp lệ với tài liệu đặc tả.
+- **Phản hồi của GV:** "PDF dẫn tới docs/schema.sql nhưng repo không có file này."
+- **Quyết định:** SỬA. Thêm `docs/schema.sql` dựng từ DDL trong báo cáo BT1 (Mục 4). So với đoạn rút gọn trong PDF, bản đầy đủ có thêm các ràng buộc CHECK (enum trạng thái, nhóm sự cố, mức ưu tiên, loại lịch hẹn; định dạng số điện thoại và mã phiếu; độ dài lịch hẹn 30 phút) và chỉ mục `ix_ticket_technician`, `ix_status_log_ticket`, `ix_appointment_technician_start`, đúng như PDF đã ghi ("bản đầy đủ có CHECK enum và chỉ mục"). Bảng, cột, khóa ngoại giữ nguyên theo ERD.
+- **Lý do:** Báo cáo dẫn tới tệp này nên tệp phải có trong repo để người khác dựng lại được CSDL.
+- **Ảnh hưởng:** `README.md` (mục 4–5) và `docs/deployment-guide.md` hướng dẫn dựng CSDL từ tệp này.
+- **Trạng thái:** Đã nạp thành công vào PostgreSQL 16 trống và chạy lại các bước README từ bản clone mới (16–17/10/2026). Giá trị `level` của kỹ thuật viên (`SO_CAP`, `TRUNG_CAP`, `CAO_CAP`) trong đó: `TRUNG_CAP` và `CAO_CAP` có trong hợp đồng API, `SO_CAP` là giả định, cần đối chiếu với case study.
 
-### TD-04 — Giữ ràng buộc chống trùng lịch ở tầng CSDL
+### TD-03 — Đoạn DDL trong PDF bị vỡ khoảng trắng
 
-- **Phản hồi:** Lịch hẹn phải tránh chồng lấn đối với cùng kỹ thuật viên, kể cả khi nhiều yêu cầu được xử lý gần như đồng thời.
-- **Quyết định:** Giữ ràng buộc loại trừ `ex_appointment_no_overlap` nếu kiểm tra schema hiện hành vẫn xác nhận ràng buộc này đáp ứng quy tắc nghiệp vụ.
-- **Lý do:** Kiểm tra ở CSDL tạo lớp bảo vệ toàn vẹn dữ liệu, không chỉ phụ thuộc vào bước kiểm tra trước khi ghi lịch ở ứng dụng.
-- **Ảnh hưởng:** BT2 cần có kiểm thử lịch chồng lấn, lịch liền kề và các yêu cầu đặt lịch đồng thời. Ứng dụng cũng cần xử lý lỗi vi phạm ràng buộc một cách phù hợp.
-- **Trạng thái:** Thiết kế đã được ghi nhận trong lần rà soát trước; cần xác minh lại định nghĩa SQL thực tế và kết quả kiểm thử trên schema hiện hành.
+- **Phản hồi của GV:** "đoạn DDL trong PDF bị vỡ khoảng trắng, khó đọc."
+- **Quyết định:** GIỮ nguyên PDF BT1 đã nộp, sửa ở repo. Bản DDL đọc được là `docs/schema.sql`. Trong báo cáo BT2, DDL (nếu đưa vào) trình bày bằng font đơn cách, căn trái, một câu lệnh một dòng.
+- **Lý do:** PDF BT1 là bản đã nộp và đã chấm; repo là nơi giữ bản chính thức, dễ đọc và chạy được.
+- **Ảnh hưởng:** Mục 4 của PDF BT1 vẫn đọc khó; người đọc đối chiếu bằng `docs/schema.sql`.
+- **Trạng thái:** Đã có `docs/schema.sql`. PDF BT1 chưa sửa.
 
-### TD-05 — Giữ các chỉ mục phục vụ truy vấn nghiệp vụ
+### TD-04 — Thêm `.gitignore`
 
-- **Phản hồi:** Các truy vấn quản lý phiếu, kỹ thuật viên và lịch hẹn cần có cấu trúc dữ liệu hỗ trợ.
-- **Quyết định:** Tạm giữ các chỉ mục hiện có: `ix_ticket_unassigned`, `ix_ticket_technician`, `ix_appointment_technician_start` và `ix_status_log_ticket`.
-- **Lý do:** Các chỉ mục được thiết kế để hỗ trợ những truy vấn theo trung tâm, ngày đến hạn, kỹ thuật viên, thời điểm lịch hẹn và lịch sử trạng thái.
-- **Ảnh hưởng:** Giữ cấu trúc hiện tại khi xây dựng migration; đánh giá lại nếu kiểm thử truy vấn cho thấy chỉ mục không phù hợp.
-- **Trạng thái:** Đã xác minh tên các chỉ mục trong lần kiểm tra trước; hiệu quả thực tế chưa được kết luận nếu chưa đo hiệu năng.
+- **Phản hồi của GV:** "Repo thiếu .gitignore."
+- **Quyết định:** SỬA. Tệp trước đó nằm ở repo dưới tên `download`; đã đổi thành `.gitignore`. Tệp chặn `.env`, `.env.*` (trừ `.env.example`), `node_modules/`, thư mục build và tệp tạm của trình soạn thảo và draw.io.
+- **Lý do:** Ngăn commit nhầm tệp `.env` chứa thông tin bí mật.
+- **Ảnh hưởng:** Mọi tệp cấu hình cục bộ của BT2 nằm trong `.env`, không đưa lên repo.
+- **Trạng thái:** Đã kiểm tra: `git check-ignore` xác nhận `.env` bị chặn và repo không có tệp `.env`.
 
-### TD-06 — Giữ ranh giới phạm vi MVP L4
+### TD-05 — Đổi tên tệp cấu hình mẫu
 
-- **Phản hồi:** Cần làm rõ các chức năng không triển khai để tránh mở rộng phạm vi ngoài yêu cầu BT1.
-- **Quyết định:** Giữ các chức năng ngoài phạm vi đã ghi trên sơ đồ, gồm tiếp nhận phiếu thuộc L2, quản lý tài khoản và phân quyền chi tiết, SMS/Zalo, kho linh kiện L5, báo cáo L6, tự động phân công tối ưu, đổi/hủy lịch và xem lịch tuần.
-- **Lý do:** Phạm vi triển khai cần thống nhất với danh sách chức năng được chủ ý loại trừ trong SRS.
-- **Ảnh hưởng:** Không bổ sung các chức năng trên vào kế hoạch BT2 nếu chưa có yêu cầu thay đổi phạm vi chính thức.
-- **Trạng thái:** Đã đưa vào khung ngoài phạm vi trên sơ đồ kiến trúc; cần đối chiếu lần cuối với SRS hiện hành.
+- **Phản hồi của GV:** "file mẫu đặt tên env.example (thiếu dấu chấm)."
+- **Quyết định:** SỬA. Đổi `env.example` thành `.env.example`.
+- **Lý do:** Tên chuẩn là `.env.example`; README hướng dẫn `cp .env.example .env`.
+- **Ảnh hưởng:** `README.md` (mục 5, bước 3). BT2 phải liệt kê đủ mọi biến môi trường trong tệp này.
+- **Trạng thái:** Đã đổi tên và dùng đúng trong bản clone mới khi chạy thử README.
 
-### TD-07 — Làm rõ các quy tắc thuộc tầng ứng dụng
+### TD-06 — Thông điệp commit "Add files via upload"
 
-- **Phản hồi:** Ràng buộc CSDL không thay thế toàn bộ việc kiểm tra quy tắc nghiệp vụ và quyền truy cập.
-- **Quyết định:** Không tự động bổ sung các quy tắc mới vào schema khi chưa có căn cứ. Trong BT2, đối chiếu SRS và hợp đồng API để xác định kiểm tra nào thuộc tầng ứng dụng, kiểm tra nào cần được bảo vệ tại CSDL.
-- **Lý do:** Phân chia trách nhiệm rõ ràng giữa ứng dụng và CSDL giúp tránh bỏ sót kiểm tra hoặc triển khai trùng lặp không cần thiết.
-- **Ảnh hưởng:** Cần xác minh quy tắc giờ làm việc, trạng thái phiếu được phép đặt lịch, xác thực khách hàng và phân quyền trước khi triển khai các luồng tương ứng.
-- **Trạng thái:** Cần đối chiếu tài liệu và kiểm thử trong BT2; chưa kết luận các quy tắc này đang bị thiếu trong mã nguồn.
+- **Phản hồi của GV:** "commit chủ yếu "Add files via upload"."
+- **Quyết định:** GIỮ lịch sử cũ, ĐỔI cách làm từ nay: không viết lại lịch sử; mỗi commit mới một việc, thông điệp nói rõ việc đó.
+- **Lý do:** Viết lại lịch sử (force-push) làm mất chính minh chứng quá trình làm việc và gây rủi ro lệch giữa các bản clone.
+- **Ảnh hưởng:** Quy trình commit của BT2. Các commit cũ giữ nguyên.
+- **Trạng thái:** Các commit từ 16/10/2026 có thông điệp mô tả việc đã làm. Vẫn còn commit tạo qua giao diện web có tên chung chung; BT2 làm bằng dòng lệnh để tránh.
 
-### TD-08 — Duy trì quy tắc quản lý cấu hình và tài liệu repository
+### TD-07 — Xóa slide bài giảng và case study khỏi repo public
 
-- **Phản hồi:** Repository cần có cấu hình mẫu, loại trừ dữ liệu nhạy cảm và cấu trúc tài liệu rõ ràng.
-- **Quyết định:** Duy trì `.gitignore`, `.env.example` và không đưa tệp `.env` chứa thông tin cấu hình bí mật lên repository.
-- **Lý do:** Hỗ trợ dựng môi trường nhất quán và giảm nguy cơ công khai thông tin nhạy cảm.
-- **Ảnh hưởng:** Hướng dẫn triển khai BT2 cần nêu rõ cách tạo tệp môi trường cục bộ từ cấu hình mẫu.
-- **Trạng thái:** Đã được ghi nhận là hoàn thành trong lần rà soát BT1 trước; cần tiếp tục duy trì quy tắc này.
+- **Phản hồi của GV:** "em nên xóa thư mục slide bài giảng và case study khỏi repo public."
+- **Quyết định:** SỬA. Đã xóa thư mục `slide bai giang` (commit `d156643`, 17/10/2026).
+- **Lý do:** Tài liệu học phần lưu hành nội bộ không nên công khai.
+- **Ảnh hưởng:** Repo không còn tệp tài liệu học phần; README không tham chiếu tới chúng.
+- **Trạng thái:** Đã xóa khỏi cây tệp hiện tại. Các tệp vẫn nằm trong lịch sử commit cũ; không ghi đè lịch sử vì lý do ở TD-06. Nếu giảng viên yêu cầu xóa cả khỏi lịch sử thì cần hỏi lại trước khi làm.
 
-### TD-09 — Giữ nguyên nội dung lịch sử commit cũ
+### TD-08 — Gợi ý cho BT2
 
-- **Phản hồi:** Một số commit cũ có thông điệp chung chung như `Add files via upload`.
-- **Quyết định:** Không viết lại lịch sử commit cũ chỉ để đổi thông điệp; sử dụng thông điệp rõ nghĩa cho các commit mới.
-- **Lý do:** Tránh ghi đè lịch sử đã được sử dụng làm minh chứng và hạn chế rủi ro đồng bộ giữa các bản clone.
-- **Ảnh hưởng:** Các thay đổi từ thời điểm này cần được chia thành commit theo từng mục đích cụ thể.
-- **Trạng thái:** Áp dụng cho các thay đổi tiếp theo.
+- **Phản hồi của GV:** "Đưa schema.sql vào repo, chạy thử ràng buộc EXCLUDE và viết test đồng thời cho TC-11 ngay từ đầu."
+- **Quyết định:** ÁP DỤNG CHO BT2. Dùng `docs/schema.sql` làm căn cứ viết migration; ràng buộc `ex_appointment_no_overlap` giữ nguyên ở tầng CSDL (NFR3); viết test đồng thời cho TC-11 ngay từ checkpoint đầu của BT2.
+- **Lý do:** NFR3 yêu cầu đúng 1 yêu cầu thành công và 0 lịch trùng qua 100 lần đặt đồng thời; kiểm tra ở ứng dụng không đủ nếu không có ràng buộc ở CSDL.
+- **Ảnh hưởng:** `migrations/` và `tests/` của BT2; ứng dụng phải ánh xạ lỗi 23P01 sang HTTP 409 `SLOT_CONFLICT`.
+- **Trạng thái:** `schema.sql` đã vào repo (TD-02). Đã chạy thử ràng buộc EXCLUDE bằng 10 ca (đặt hợp lệ, trùng khung, chồng lấn một phần, lịch liền kề và các vi phạm khác) trên PostgreSQL 16; bộ ca nằm ở `docs/deployment-guide.md`, Mục 4. Test đồng thời TC-11 **chưa làm**, thực hiện ở BT2.
 
-## 3. Các điểm cần đối chiếu trước BT2
+## 4. Làm rõ SRS và hợp đồng API khi tự rà soát (16/10/2026)
 
-1. Đối chiếu các bảng, trường, khóa ngoại và ràng buộc trong `docs/schema.sql` với SRS và sơ đồ dữ liệu.
-2. Kiểm tra định nghĩa chính xác của ràng buộc chống trùng lịch, bao gồm cách xử lý lịch liền kề và thời điểm kết thúc.
-3. Xác minh các quy tắc nghiệp vụ thuộc tầng ứng dụng, bao gồm giờ làm việc, trạng thái phiếu, xác thực và phân quyền.
-4. Kiểm tra các chỉ mục có phù hợp với các truy vấn dự kiến; không kết luận hiệu năng chỉ dựa trên sự tồn tại của chỉ mục.
-5. Đối chiếu danh sách ngoài phạm vi trên sơ đồ với SRS để tránh mâu thuẫn giữa các tài liệu.
-6. Khi bắt đầu BT2, xây dựng migration từ schema đã được đối chiếu và bổ sung kiểm thử cho các ràng buộc quan trọng.
+Nguồn: tự rà soát chéo SRS, hợp đồng API, ERD và báo cáo BT1, không phải phản hồi của giảng viên. Các thay đổi sau làm `docs/srs.md` và `docs/api-contract.md` trong repo khác bản đã nộp trong PDF BT1.
+
+### TD-09 — Bổ sung QT-02 vào SRS
+
+- **Nguồn:** `docs/api-contract.md` dẫn tới QT-02 (chuẩn hóa số điện thoại) nhưng SRS Mục 5 không định nghĩa.
+- **Quyết định:** SỬA. Thêm QT-02 vào SRS Mục 5: số điện thoại chuẩn hóa về 10 chữ số bắt đầu bằng 0 trước khi lưu và trước khi so khớp; nội dung theo case study Mục 9.
+- **Lý do:** Mọi mã quy tắc được dẫn phải có định nghĩa trong SRS.
+- **Ảnh hưởng:** `docs/srs.md` (Mục 5). Dùng khi khách nhập số điện thoại để xác thực (`POST /api/appointments`).
+- **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
+
+### TD-10 — Định nghĩa "số phiếu đang giữ"
+
+- **Nguồn:** FR2, US2 và `open_tickets` trong API dùng cụm "số phiếu đang giữ/đang xử lý" nhưng không nói đếm phiếu ở trạng thái nào.
+- **Quyết định:** SỬA. Số phiếu đang giữ của một KTV là số phiếu có KTV đó ở trạng thái ĐÃ PHÂN CÔNG, ĐANG XỬ LÝ hoặc CHỜ LINH KIỆN.
+- **Lý do:** Không có định nghĩa này thì không viết được truy vấn đếm tải và không kiểm thử được TC-03.
+- **Ảnh hưởng:** `docs/srs.md` (FR2), `docs/api-contract.md` (mục 2.2).
+- **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
+
+### TD-11 — Trạng thái phiếu cho phép giao máy và nhận máy
+
+- **Nguồn:** BR-L4-02 ghi hẹn giao máy "khi phiếu ở ĐÃ PHÂN CÔNG trở đi", nghĩa là gồm cả HOÀN TẬT, ĐÃ ĐÓNG, ĐÃ HỦY; mâu thuẫn BR-L4-03 (phiếu ĐÃ ĐÓNG hoặc ĐÃ HỦY không đặt lịch được).
+- **Quyết định:** SỬA. Hẹn giao máy chỉ khi phiếu ở ĐÃ PHÂN CÔNG, ĐANG XỬ LÝ hoặc CHỜ LINH KIỆN; hẹn nhận máy chỉ khi phiếu HOÀN TẬT.
+- **Lý do:** Loại mâu thuẫn giữa hai quy tắc; khớp mã lỗi 409 `TICKET_NOT_BOOKABLE` trong API.
+- **Ảnh hưởng:** `docs/srs.md` (BR-L4-02, điều kiện trước của UC6).
+- **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026). Đây là quyết định của sinh viên; cần kiểm thử ở BT2.
+
+### TD-12 — Giờ hợp lệ của lịch hẹn khớp BR-L4-01
+
+- **Nguồn:** US6 AC3 và UC6 bước 4a ghi "sau 17:30", lệch BR-L4-01 (khung cuối bắt đầu 17:00, bắt đầu đúng mốc :00 hoặc :30).
+- **Quyết định:** SỬA. Từ chối khi lịch vào Chủ nhật, bắt đầu trước 08:00 hoặc sau 17:00, hoặc không nằm trên mốc :00/:30.
+- **Lý do:** Cùng một quy tắc phải được mô tả giống nhau ở mọi nơi.
+- **Ảnh hưởng:** `docs/srs.md` (US6 AC3, UC6 bước 4a).
+- **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
+
+### TD-13 — Luồng gợi ý khung giờ sau lỗi 409
+
+- **Nguồn:** FR9 và UC6 bước 5a nói khi trùng lịch thì hiển thị ít nhất 3 khung trống, nhưng phản hồi 409 `SLOT_CONFLICT` không kèm khung nào và hợp đồng API không ghi bước tiếp theo.
+- **Quyết định:** SỬA. Ghi chú rõ: khi nhận 409 `SLOT_CONFLICT`, giao diện gọi tiếp `POST /api/appointments/available-slots` với cùng `ticket_code`, `phone`, `type`. Không thêm endpoint mới, không đổi phản hồi 409.
+- **Lý do:** Làm rõ cách hai endpoint hiện có phối hợp để thực hiện FR9.
+- **Ảnh hưởng:** `docs/api-contract.md` (trước mục 2.7).
+- **Trạng thái:** Đã sửa và đẩy lên repo (16/10/2026).
+
+## 5. Điểm còn mở
+
+1. Giá trị `SO_CAP` của `technician.level` là giả định, cần đối chiếu với case study.
+2. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03) và các làm rõ ở Mục 4.
+3. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
+4. Test đồng thời TC-11 chưa làm (TD-08).
