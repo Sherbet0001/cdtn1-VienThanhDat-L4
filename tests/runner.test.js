@@ -58,3 +58,13 @@ test('seed (track = false) chạy lại mọi tệp mỗi lần', async () => {
   const kq = await applyFiles(c, tep, { track: false });
   assert.deepEqual(kq.applied, ['001_a.sql', '002_b.sql']);
 });
+
+test('lỗi kết nối rỗng thông điệp (AggregateError): vẫn hiện mã lỗi và gợi ý', () => {
+  const { moTaLoi } = require('../src/db/runner');
+  const e1 = Object.assign(new Error('connect ECONNREFUSED ::1:5432'), { code: 'ECONNREFUSED' });
+  const e2 = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:5432'), { code: 'ECONNREFUSED' });
+  const tong = new AggregateError([e1, e2], '');
+  const chu = moTaLoi(tong);
+  assert.match(chu, /ECONNREFUSED: connect ECONNREFUSED ::1:5432/);
+  assert.match(chu, /PostgreSQL chưa chạy/);
+});

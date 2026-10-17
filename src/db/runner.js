@@ -59,6 +59,20 @@ async function applyFiles(client, files, { track }) {
   return { applied, skipped };
 }
 
+const GOI_Y = {
+  ECONNREFUSED: 'PostgreSQL chưa chạy, hoặc sai host/cổng trong DATABASE_URL.',
+  '28P01': 'Sai tên người dùng hoặc mật khẩu trong DATABASE_URL.',
+  '3D000': 'Chưa tạo cơ sở dữ liệu có tên trong DATABASE_URL.',
+};
+
+/** Mô tả lỗi cho người đọc. Lỗi kết nối của Node có thể là AggregateError với message rỗng. */
+function moTaLoi(err) {
+  const cacLoi = err.errors && err.errors.length ? err.errors : [err];
+  const dong = cacLoi.map((e) => `${e.code ? e.code + ': ' : ''}${e.message || 'không có thông điệp'}`);
+  const goiY = cacLoi.map((e) => GOI_Y[e.code]).find(Boolean);
+  return dong.join(' | ') + (goiY ? `\nGợi ý: ${goiY}` : '');
+}
+
 async function main(loai) {
   const cauHinh = { migrations: { dir: 'migrations', track: true },
                     seeds:      { dir: 'seeds',      track: false } }[loai];
@@ -80,13 +94,13 @@ async function main(loai) {
     for (const t of kq.skipped) console.log(`${loai}: bỏ qua ${t} (đã chạy trước đó)`);
     console.log(`${loai}: xong (${kq.applied.length} chạy, ${kq.skipped.length} bỏ qua)`);
   } catch (err) {
-    console.error(`Lỗi khi chạy ${loai}: ${err.message}`);
+    console.error(`Lỗi khi chạy ${loai}: ${moTaLoi(err)}`);
     process.exitCode = 1;
   } finally {
     await client.end().catch(() => {});
   }
 }
 
-module.exports = { listSqlFiles, applyFiles };
+module.exports = { listSqlFiles, applyFiles, moTaLoi };
 
 if (require.main === module) main(process.argv[2]);
