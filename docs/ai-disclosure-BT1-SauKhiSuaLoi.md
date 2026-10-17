@@ -28,9 +28,6 @@ Các thay đổi này được làm cùng Claude (Anthropic, qua claude.ai) đ�
 | Claude (Anthropic) | Hướng dẫn lệnh `git mv` và `git rm` để đổi tên `download` thành `.gitignore`, `env.example` thành `.env.example` và xóa tệp rỗng `slide bai giang/l` | `.gitignore`, `.env.example` | Sinh viên tự chạy lệnh; xem lại danh sách tệp trên GitHub sau khi push |
 | Claude (Anthropic) | Soát nội dung ba bản khai báo tuần 1–3 và đề xuất cách tổ chức hồ sơ khai báo AI; sinh viên tự quyết định tên tệp và tự đổi tên | `docs/ai-disclosure-BT1-SauKhiSuaLoi.md`, `README.md` (bảng mục 3) | Sinh viên đối chiếu từng dòng với ba bản khai báo gốc và kiểm tra các đường dẫn trong README |
 
-**Xác nhận kiểm chứng của sinh viên:** sinh viên tự chạy lại các lệnh trong `docs/deployment-guide.md` (Mục 2 đến Mục 4) trên máy của mình.  
-Ngày chạy và kết quả: ______________________________
-
 ## III. GHI CHÚ
 
 - Công cụ AI chỉ được dùng để hỗ trợ tham khảo, gợi ý, rà soát và soạn thảo; sinh viên chịu trách nhiệm kiểm tra, đối chiếu và sửa nội dung trước khi nộp.
@@ -42,4 +39,4 @@ Ngày chạy và kết quả: ______________________________
 > “Tôi xác nhận đã đọc, hiểu và kiểm tra toàn bộ nội dung trong gói nộp này, chịu trách nhiệm về tính chính xác của nội dung và có thể giải thích mọi quyết định thiết kế khi giảng viên yêu cầu.”
 
 - **Sinh viên:** Viên Thành Đạt – MSSV 2374802010107
-- **Ngày xác nhận:** ____ / ____ / 2026
+- **Ngày xác nhận:** 16 / 10 / 2026
