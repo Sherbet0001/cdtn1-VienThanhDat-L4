@@ -2,32 +2,18 @@
 /**
  * Lớp routes: dịch giữa HTTP và nghiệp vụ. KHÔNG chứa quy tắc nghiệp vụ.
  * Bảng HTTP_THEO_MA dưới đây là chỗ DUY NHẤT trong dự án đổi mã lỗi nghiệp vụ sang mã HTTP.
- * Định dạng phản hồi theo docs/api-contract.md: trường snake_case, lỗi dạng { error: { code, message, field } }.
+ * Hình dạng dữ liệu trả ra do src/contracts/technician.contract.js quyết định; lỗi dạng { error: { code, message, field } }.
  */
 const {
   validateTechnician, validateId, validateListQuery,
 } = require('../validators/technician.validator');
+const { toTechnicianView: toJson } = require('../contracts/technician.contract');
 
 const HTTP_THEO_MA = Object.freeze({
   VALIDATION_ERROR: 400,
   TECHNICIAN_NOT_FOUND: 404,
   TECHNICIAN_HAS_OPEN_TICKETS: 409,   // xung đột với trạng thái hiện tại của dữ liệu
 });
-
-/** Đối tượng nghiệp vụ (camelCase) -> JSON của API (snake_case). */
-function toJson(t) {
-  const kq = {
-    technician_id: t.technicianId,
-    full_name: t.fullName,
-    center_id: t.centerId,
-    level: t.level,
-    is_active: t.isActive,
-  };
-  if (t.skills) {
-    kq.skills = t.skills.map((s) => ({ issue_category: s.issueCategory, proficiency: s.proficiency }));
-  }
-  return kq;
-}
 
 /** Lỗi đã biết -> { error: { code, message, field, details } }. */
 function loiJson(e) {
