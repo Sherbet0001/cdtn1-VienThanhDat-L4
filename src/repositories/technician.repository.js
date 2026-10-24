@@ -5,9 +5,10 @@
  * Lưu ý: cột BIGINT được thư viện pg trả về dạng chuỗi, nên mọi dòng đi qua toTechnician để đổi sang số.
  */
 
-/** Các phiếu coi là "đang giữ" một kỹ thuật viên (SRS, FR2). */
+/** Trạng thái phiếu coi là "đang giữ" một kỹ thuật viên (FR2, TD-10); phiếu đã HOAN_TAT trở đi không tính. */
 const TRANG_THAI_DANG_GIU = ['DA_PHAN_CONG', 'DANG_XU_LY', 'CHO_LINH_KIEN'];
 
+/** Dòng CSDL (snake_case, BIGINT là chuỗi) -> đối tượng nghiệp vụ (camelCase, số). */
 function toTechnician(row) {
   return {
     technicianId: Number(row.technician_id),
@@ -23,6 +24,10 @@ class TechnicianRepository {
     this.db = db;
   }
 
+  /**
+   * @param {{centerId:number|null, isActive:boolean|null, limit:number, offset:number}} boLoc null = không lọc.
+   * @returns {Promise<object[]>} Sắp theo technician_id để phân trang ổn định giữa các lần gọi.
+   */
   async list({ centerId, isActive, limit, offset }) {
     const { rows } = await this.db.query(
       `SELECT technician_id, full_name, center_id, level, is_active
@@ -52,6 +57,7 @@ class TechnicianRepository {
     };
   }
 
+  /** @returns {Promise<object>} Dòng vừa chèn (RETURNING, không cần truy vấn lần hai). */
   async insert({ fullName, centerId, level, isActive }) {
     const { rows } = await this.db.query(
       `INSERT INTO technician (full_name, center_id, level, is_active)
@@ -81,7 +87,7 @@ class TechnicianRepository {
     return rows.length === 0 ? null : toTechnician(rows[0]);
   }
 
-  /** Số phiếu kỹ thuật viên đang giữ. */
+  /** Số phiếu kỹ thuật viên đang giữ, tính theo TRANG_THAI_DANG_GIU (TD-10). @returns {Promise<number>} */
   async countOpenTickets(id) {
     const { rows } = await this.db.query(
       `SELECT COUNT(*)::int AS so_phieu

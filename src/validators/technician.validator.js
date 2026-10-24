@@ -18,7 +18,13 @@ function nem(cacTruong) {
 
 const laSoNguyenDuong = (v) => Number.isInteger(v) && v >= 1;
 
-/** Dùng cho POST (tạo) và PUT (sửa toàn bộ). */
+/**
+ * Kiểm tra thân yêu cầu POST (tạo) và PUT (sửa toàn bộ) và đổi sang dạng nghiệp vụ.
+ * @param {unknown} body Thân JSON nhận từ HTTP, snake_case; có thể là bất kỳ thứ gì.
+ * @returns {{fullName:string, centerId:number, level:string, isActive:boolean}}
+ *   fullName đã cắt khoảng trắng hai đầu; isActive mặc định true khi thiếu.
+ * @throws {ValidationError} Khi body không phải đối tượng hoặc sai một trường; fields liệt kê MỌI trường sai.
+ */
 function validateTechnician(body) {
   if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     return nem([{ field: 'body', reason: 'phải là một đối tượng JSON' }]);
@@ -61,7 +67,13 @@ function validateTechnician(body) {
   };
 }
 
-/** Mã trong đường dẫn /technicians/:id. Giới hạn 15 chữ số để không vượt độ chính xác của số trong JS. */
+/**
+ * Kiểm tra mã trong đường dẫn /technicians/:id.
+ * Giới hạn 15 chữ số vì số nguyên JS chỉ chính xác tới 2^53 (khoảng 9×10^15); mã dài hơn sẽ bị làm tròn âm thầm.
+ * @param {string|number} raw Giá trị thô lấy từ req.params.
+ * @returns {number} Số nguyên dương.
+ * @throws {ValidationError} Khi không phải số nguyên dương (field = 'id').
+ */
 function validateId(raw) {
   if (!/^[1-9][0-9]{0,14}$/.test(String(raw))) {
     return nem([{ field: 'id', reason: 'phải là số nguyên dương' }]);
@@ -69,7 +81,13 @@ function validateId(raw) {
   return Number(raw);
 }
 
-/** Tham số lọc và phân trang của GET /technicians. */
+/**
+ * Kiểm tra tham số lọc và phân trang của GET /technicians (chuỗi query luôn là chuỗi).
+ * @param {Record<string,string>} [q] req.query: center_id, is_active ('true'|'false'), limit (1–100), offset (>= 0).
+ * @returns {{centerId:number|null, isActive:boolean|null, limit:number, offset:number}}
+ *   null nghĩa là "không lọc theo trường này"; limit mặc định 20, offset mặc định 0.
+ * @throws {ValidationError} Khi một tham số sai; không âm thầm sửa thành giá trị mặc định.
+ */
 function validateListQuery(q = {}) {
   const loi = [];
   const kq = { centerId: null, isActive: null, limit: LIMIT_MAC_DINH, offset: 0 };
