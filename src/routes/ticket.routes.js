@@ -1,8 +1,10 @@
 'use strict';
 /** Lớp routes của phiếu: dịch giữa HTTP và nghiệp vụ. Hình dạng dữ liệu do src/contracts/ticket.contract.js quyết định. */
-const { validateTicketCreate, validateUnassignedQuery } = require('../validators/ticket.validator');
+const {
+  validateTicketCreate, validateUnassignedQuery, validateAssignment,
+} = require('../validators/ticket.validator');
 const { validateId } = require('../validators/technician.validator');
-const { toTicketView } = require('../contracts/ticket.contract');
+const { toTicketView, toEligibleView, toAssignmentView } = require('../contracts/ticket.contract');
 const { boc } = require('./http');
 
 /** Các hàm xử lý yêu cầu; tách khỏi Express để kiểm thử bằng req/res giả. */
@@ -19,6 +21,17 @@ function makeHandlers(service) {
       const t = await service.create(validateTicketCreate(req.body));
       res.status(201).location(`/api/tickets/${t.ticketId}`).json(toTicketView(t));
     }),
+    eligible: boc(async (req, res) => {
+      const { phieu, ktvs } = await service.listEligible(validateId(req.params.id));
+      res.json(toEligibleView(phieu, ktvs));
+    }),
+    // req.user do middleware đăng nhập đặt (TD-18); chưa đăng nhập thì mã người thực hiện là 0.
+    assign: boc(async (req, res) => {
+      const ticketId = validateId(req.params.id);
+      const technicianId = validateAssignment(req.body);
+      const kq = await service.assign(ticketId, technicianId, req.user ? req.user.id : 0);
+      res.status(201).json(toAssignmentView(kq));
+    }),
   };
 }
 
@@ -29,6 +42,8 @@ function ticketRoutes(service) {
   r.get('/unassigned', h.unassigned);   // đặt TRƯỚC /:id để "unassigned" không bị hiểu là mã phiếu
   r.get('/:id', h.get);
   r.post('/', h.create);
+  r.get('/:id/eligible-technicians', h.eligible);
+  r.post('/:id/assignment', h.assign);
   return r;
 }
 

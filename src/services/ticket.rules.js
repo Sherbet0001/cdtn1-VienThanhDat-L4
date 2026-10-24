@@ -32,4 +32,22 @@ function hanCamKet(nhanLuc, uuTien) {
   return han;
 }
 
-module.exports = { GIO_CAM_KET, UU_TIEN_MAC_DINH, hanCamKet };
+/** Mức thành thạo tối thiểu để được phân công (QT-08). */
+const THANH_THAO_TOI_THIEU = 3;
+
+/**
+ * Kiểm tra QT-08: kỹ thuật viên cùng trung tâm với phiếu, đang hoạt động và thành thạo >= 3 với nhóm sự cố của phiếu.
+ * @param {{centerId:number, issueCategory:string}} phieu
+ * @param {{centerId:number, isActive:boolean, proficiency:number|null}} ktv proficiency null = chưa có kỹ năng này.
+ * @returns {string|null} Lý do từ chối (đã viết cho người đọc), hoặc null nếu đủ điều kiện.
+ */
+function lyDoKhongDuDieuKien(phieu, ktv) {
+  if (!ktv.isActive) return 'Kỹ thuật viên đã ngừng hoạt động.';
+  if (ktv.centerId !== phieu.centerId) return 'Kỹ thuật viên thuộc trung tâm khác với phiếu.';
+  if (ktv.proficiency === null || ktv.proficiency < THANH_THAO_TOI_THIEU) {
+    return `Kỹ thuật viên chưa đạt mức thành thạo ≥ ${THANH_THAO_TOI_THIEU} với nhóm sự cố ${phieu.issueCategory}.`;
+  }
+  return null;
+}
+
+module.exports = { GIO_CAM_KET, UU_TIEN_MAC_DINH, THANH_THAO_TOI_THIEU, hanCamKet, lyDoKhongDuDieuKien };

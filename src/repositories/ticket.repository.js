@@ -30,6 +30,8 @@ function toTicket(r) {
   };
 }
 
+const { TRANG_THAI_DANG_GIU } = require('./technician.repository');
+
 class TicketRepository {
   constructor(db) {
     this.db = db;
@@ -78,6 +80,86 @@ class TicketRepository {
     return Number(rows[0].ticket_id);
   }
 }
+
+/**
+ * Khóa dòng phiếu (FOR UPDATE) rồi đọc: người thứ hai cùng gán một phiếu phải ĐỢI người thứ nhất xong,
+ * và khi được đọc sẽ thấy phiếu đã DA_PHAN_CONG nên bị từ chối (QT-07), không ghi đè.
+ * Chỉ gọi bên trong runInTransaction.
+ * @returns {Promise<object|null>}
+ */
+TicketRepository.prototype.lockById = async function lockById(id) {
+  const { rows } = await this.db.query(
+    `${SELECT_PHIEU} WHERE t.ticket_id = $1 FOR UPDATE OF t`, [id]);
+  return rows.length === 0 ? null : toTicket(rows[0]);
+};
+
+/**
+ * Kỹ thuật viên đủ điều kiện QT-08 cho một trung tâm và nhóm sự cố, kèm số phiếu đang giữ, ít phiếu nhất trước (FR2).
+ * @returns {Promise<Array<{technicianId:number, fullName:string, level:string, proficiency:number, openTickets:number}>>}
+ */
+TicketRepository.prototype.listEligible = async function listEligible({ centerId, issueCategory, toiThieu }) {
+  const { rows } = await this.db.query(
+    `SELECT k.technician_id, k.full_name, k.level, s.proficiency,
+            (SELECT COUNT(*)::int FROM ticket x
+              WHERE x.technician_id = k.technician_id AND x.status = ANY($4::text[])) AS open_tickets
+       FROM technician k
+       JOIN technician_skill s ON s.technician_id = k.technician_id AND s.issue_category = $2
+      WHERE k.center_id = $1 AND k.is_active AND s.proficiency >= $3
+      ORDER BY open_tickets, k.technician_id`,
+    [centerId, issueCategory, toiThieu, TRANG_THAI_DANG_GIU]);
+  return rows.map((r) => ({
+    technicianId: Number(r.technician_id), fullName: r.full_name, level: r.level,
+    proficiency: r.proficiency, openTickets: r.open_tickets,
+  }));
+};
+
+/** Thông tin để kiểm QT-08 cho MỘT kỹ thuật viên; proficiency null khi chưa có kỹ năng nhóm này. null nếu không có kỹ thuật viên. */
+TicketRepository.prototype.findTechnicianForCheck = async function findTechnicianForCheck(id, issueCategory) {
+  const { rows } = await this.db.query(
+    `SELECT k.technician_id, k.center_id, k.is_active, s.proficiency
+       FROM technician k
+       LEFT JOIN technician_skill s ON s.technician_id = k.technician_id AND s.issue_category = $2
+      WHERE k.technician_id = $1`, [id, issueCategory]);
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return { technicianId: Number(r.technician_id), centerId: r.center_id, isActive: r.is_active,
+    proficiency: r.proficiency === null ? null : r.proficiency };
+};
+
+/** Ghi kỹ thuật viên và đổi trạng thái sang DA_PHAN_CONG. Chỉ gọi bên trong runInTransaction. */
+TicketRepository.prototype.setAssignment = async function setAssignment(ticketId, technicianId) {
+  const { rows } = await this.db.query(
+    `UPDATE ticket SET technician_id = $2, status = 'DA_PHAN_CONG' WHERE ticket_id = $1 RETURNING now() AS luc`,
+    [ticketId, technicianId]);
+  return rows[0].luc;
+};
+
+/** Ghi một dòng ticket_status_log (QT-06: mọi lần chuyển trạng thái phải có log). */
+TicketRepository.prototype.insertLog = async function insertLog(l) {
+  await this.db.query(
+    `INSERT INTO ticket_status_log (ticket_id, old_status, new_status, old_technician_id, new_technician_id, reason, changed_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [l.ticketId, l.oldStatus, l.newStatus, l.oldTechnicianId, l.newTechnicianId, l.reason, l.changedBy]);
+};
+
+/**
+ * Chạy fn trong MỘT giao dịch: lỗi ở bất kỳ bước nào thì ROLLBACK, phiếu giữ nguyên (luồng ngoại lệ 7a của UC3).
+ * @param {(tx: TicketRepository) => Promise<any>} fn Nhận một repository gắn với kết nối của giao dịch.
+ */
+TicketRepository.prototype.runInTransaction = async function runInTransaction(fn) {
+  const client = await this.db.connect();
+  try {
+    await client.query('BEGIN');
+    const kq = await fn(new TicketRepository(client));
+    await client.query('COMMIT');
+    return kq;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+};
 
 module.exports = TicketRepository;
 module.exports.toTicket = toTicket;

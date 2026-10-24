@@ -94,4 +94,23 @@ function validateUnassignedQuery(q = {}) {
   return kq;
 }
 
-module.exports = { validateTicketCreate, validateUnassignedQuery, CATEGORIES, PRIORITIES };
+/**
+ * Kiểm tra thân POST /api/tickets/{id}/assignment.
+ * @param {unknown} body { technician_id: số nguyên dương }.
+ * @returns {number} technician_id.
+ * @throws {ValidationError} field = 'technician_id' (hoặc 'body').
+ */
+function validateAssignment(body) {
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return nem([{ field: 'body', reason: 'phải là một đối tượng JSON' }]);
+  }
+  if (body.technician_id === undefined || body.technician_id === null) {
+    return nem([{ field: 'technician_id', reason: 'bắt buộc' }]);
+  }
+  if (!Number.isInteger(body.technician_id) || body.technician_id < 1) {
+    return nem([{ field: 'technician_id', reason: 'phải là số nguyên dương' }]);
+  }
+  return body.technician_id;
+}
+
+module.exports = { validateTicketCreate, validateUnassignedQuery, validateAssignment, CATEGORIES, PRIORITIES };

@@ -225,6 +225,14 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `src/routes/ticket.routes.js`, `src/services/ticket.service.js`, `src/services/ticket.rules.js` (QT-04), `src/validators/phone.js` (QT-02), `src/repositories/ticket.repository.js`, `docs/api-contract.md` (Mục 1, 2.1, 2.9).
 - **Trạng thái:** Đã viết, 28 test mới (tổng 68) PASS; câu SQL đã chạy trên PostgreSQL 16 (sắp theo hạn, mã phiếu theo năm giờ Việt Nam, khách trùng số dùng lại bản ghi cũ).
 
+### TD-23 — Phân công khi chưa có đăng nhập: `assigned_by` = 0
+
+- **Nguồn:** hợp đồng API (Mục 2.3) trả `assigned_by` lấy từ token và cột `ticket_status_log.changed_by` là `NOT NULL`; xác thực chưa làm (TD-18).
+- **Quyết định:** TẠM THỜI. Service nhận `nguoiThucHien` từ `req.user.id` (chưa có thì 0). Khi thêm đăng nhập, chỉ middleware đặt `req.user`; service và hợp đồng không đổi.
+- **Lý do:** Tách rõ phần nghiệp vụ khỏi cơ chế xác thực để phân công kiểm thử được trước.
+- **Ảnh hưởng:** `src/routes/ticket.routes.js` (hàm `assign`), `src/services/ticket.service.js`.
+- **Trạng thái:** Đã viết và kiểm thử. Đã chạy khóa dòng `FOR UPDATE` trên PostgreSQL 16 với hai phiên song song: phiên thứ hai đợi, rồi thấy phiếu `DA_PHAN_CONG` nên bị từ chối (409), log chỉ có một dòng. Test đồng thời qua HTTP (TC-11) vẫn chưa làm (TD-08).
+
 ## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.

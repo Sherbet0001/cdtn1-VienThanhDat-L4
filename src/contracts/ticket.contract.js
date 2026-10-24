@@ -51,8 +51,32 @@ function toTicketView(t) {
   };
 }
 
+/**
+ * Danh sách kỹ thuật viên đủ điều kiện của một phiếu (GET .../eligible-technicians).
+ * HÌNH DẠNG: { ticket_id, issue_category, technicians: [{ technician_id, full_name, level, proficiency, open_tickets }] }.
+ * technicians = [] khi không ai đủ điều kiện (luồng 3a của UC3); open_tickets là số nguyên >= 0.
+ */
+function toEligibleView(phieu, ktvs) {
+  return {
+    ticket_id: phieu.ticketId,
+    issue_category: phieu.issueCategory,
+    technicians: ktvs.map((k) => ({
+      technician_id: k.technicianId, full_name: k.fullName, level: k.level,
+      proficiency: k.proficiency, open_tickets: k.openTickets,
+    })),
+  };
+}
+
+/** Kết quả phân công (POST .../assignment): { ticket_id, ticket_code, status, technician_id, assigned_at, assigned_by }. */
+function toAssignmentView(a) {
+  return {
+    ticket_id: a.ticketId, ticket_code: a.ticketCode, status: a.status,
+    technician_id: a.technicianId, assigned_at: isoVN(a.assignedAt), assigned_by: a.assignedBy,
+  };
+}
+
 const TICKET_VIEW_FIELDS = Object.freeze([
   'ticket_id', 'ticket_code', 'customer_name', 'customer_phone', 'device_name', 'issue_category', 'priority',
   'status', 'center_id', 'technician_id', 'technician_name', 'received_at', 'due_date']);
 
-module.exports = { toTicketView, isoVN, TICKET_VIEW_FIELDS };
+module.exports = { toTicketView, toEligibleView, toAssignmentView, isoVN, TICKET_VIEW_FIELDS };

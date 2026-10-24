@@ -35,3 +35,11 @@ test('danh sách: mặc định page 1, limit 20; biên limit 100 được, 101 
   for (const limit of ['101', '0', 'abc', '-1']) assert.throws(() => validateUnassignedQuery({ limit }), ValidationError);
   assert.throws(() => validateUnassignedQuery({ page: '0' }), ValidationError);
 });
+
+test('phân công: technician_id phải là số nguyên dương; thiếu, chuỗi, 0, số thực đều bị báo đúng trường', () => {
+  const { validateAssignment } = require('../src/validators/ticket.validator');
+  assert.equal(validateAssignment({ technician_id: 12 }), 12);
+  for (const body of [{}, { technician_id: '12' }, { technician_id: 0 }, { technician_id: 1.5 }, null, []]) {
+    assert.throws(() => validateAssignment(body), ValidationError, JSON.stringify(body));
+  }
+});

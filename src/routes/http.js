@@ -8,8 +8,8 @@ const HTTP_THEO_MA = Object.freeze({
   TECHNICIAN_NOT_FOUND: 404,
   TICKET_NOT_FOUND: 404,
   TECHNICIAN_HAS_OPEN_TICKETS: 409,   // xung đột với trạng thái hiện tại của dữ liệu
-  TICKET_NOT_ASSIGNABLE: 409,         // phiếu không còn ở trạng thái MOI hoặc đã có người
-  TECH_NOT_ELIGIBLE: 409,             // vi phạm QT-08
+  TICKET_ALREADY_ASSIGNED: 409,       // phiếu đã có người hoặc không còn MOI (QT-06, QT-07)
+  TECH_NOT_ELIGIBLE: 400,             // vi phạm QT-08: dữ liệu chọn sai, theo hợp đồng API mục 2.3
 });
 
 /** Lỗi đã biết -> thân JSON của khung lỗi. */
