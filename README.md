@@ -6,7 +6,9 @@
 
 ## 1. Mô tả hệ thống
 
-Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ thuật viên (KTV) cho phiếu bảo hành và đặt lịch giao/nhận máy với khách. Quản lý trung tâm xem phiếu chưa phân công, lọc KTV đúng tay nghề, cùng trung tâm và đang hoạt động, rồi gán hoặc đổi KTV có ghi lịch sử. Khách đặt lịch bằng mã phiếu và số điện thoại; hệ thống chặn lịch hẹn chồng lấn bằng ràng buộc `EXCLUDE USING gist` của PostgreSQL. Kiến trúc là modular monolith nhiều lớp: routes → services → repositories → PostgreSQL. Thiết kế đầy đủ nằm trong `docs/` (SRS, ERD, hợp đồng API, nhật ký thay đổi).
+Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ thuật viên (KTV) cho phiếu bảo hành và đặt lịch giao/nhận máy với khách. Quản lý trung tâm xem phiếu chưa phân công, lọc KTV đúng tay nghề, cùng trung tâm và đang hoạt động, rồi gán KTV có ghi lịch sử (đổi KTV và đặt lịch hẹn là phần thiết kế của BT1, chưa hiện thực). Kiến trúc là modular monolith nhiều lớp: routes → services → repositories → PostgreSQL; giao diện web tĩnh gọi API qua một lớp client. Thiết kế đầy đủ nằm trong `docs/` (SRS, ERD, hợp đồng API, nhật ký thay đổi).
+
+**Luồng chính chạy được từ đầu đến cuối (UC3):** tiếp nhận phiếu mới (hoặc chọn một trong 12 phiếu `MOI` đã seed) → xem danh sách phiếu chưa phân công → mở chi tiết, xem KTV đủ điều kiện kèm số phiếu đang giữ → chọn KTV, xác nhận → phiếu sang `DA_PHAN_CONG` và ghi `ticket_status_log` trong một giao dịch.
 
 ## 2. Yêu cầu môi trường
 
@@ -26,9 +28,10 @@ Chạy từ thư mục gốc repository trong PowerShell. Mỗi bước là mộ
 4. Cài thư viện: `npm install`
 5. Dựng bảng (migration): `npm run migrate`
 6. Nạp dữ liệu mẫu: `npm run seed`
-7. Khởi động máy chủ: `npm start`
+7. Khởi động máy chủ (giữ cửa sổ này mở): `npm start`
+8. Mở giao diện trong cửa sổ PowerShell thứ hai: `Start-Process http://localhost:3000/`
 
-Trên Linux hoặc macOS thay lệnh ở bước 1–2 bằng `sudo -u postgres psql -c "..."` và bước 3 bằng `cp .env.example .env`.
+Trên Linux hoặc macOS thay lệnh ở bước 1–2 bằng `sudo -u postgres psql -c "..."`, bước 3 bằng `cp .env.example .env` và bước 8 bằng `xdg-open http://localhost:3000/` (macOS: `open`). Nếu bạn đặt mật khẩu `l4_user` khác `change_me`, sửa cùng mật khẩu đó trong dòng `DATABASE_URL` của `.env` trước bước 5.
 
 Chạy lại được: `npm run migrate` và `npm run seed` chạy lần hai không lỗi và không nhân đôi dữ liệu. Migration ghi các tệp đã chạy vào bảng `schema_migrations` và bỏ qua chúng; seed dùng `ON CONFLICT DO NOTHING`.
 
@@ -39,6 +42,8 @@ Chạy kiểm thử (không cần CSDL, không cần máy chủ):
 ```
 npm test
 ```
+
+Kết quả đúng: dòng cuối in `# tests 83`, `# pass 83`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
 
 Kiểm tra máy chủ khi `npm start` đang chạy (mở cửa sổ PowerShell thứ hai):
 
@@ -51,7 +56,21 @@ curl.exe -i -s -X POST http://localhost:3000/api/technicians -H "Content-Type: a
 curl.exe -s -X DELETE http://localhost:3000/api/technicians/39
 ```
 
-Kết quả đúng: `/health` trả `{"status":"ok","db":"ok"}`; lệnh POST đầu trả `201 Created` kèm kỹ thuật viên mới; lệnh POST thứ hai trả `400 Bad Request` kèm tên các trường sai (`full_name`, `center_id`, `level`); lệnh DELETE (mã 39 là KTV vừa tạo ở lệnh POST đầu trên CSDL mới seed; dùng mã trong phản hồi của bạn nếu khác) chuyển KTV sang `is_active = false` (xóa mềm, dòng dữ liệu vẫn còn). Nếu chữ tiếng Việt hiện lỗi font trong PowerShell, chạy `chcp 65001` trước.
+Luồng chính qua API (trên CSDL vừa seed; phiếu 113 là phiếu `MOI` của trung tâm 4, nhóm sự cố `MAN_HINH`):
+
+```
+curl.exe -s "http://localhost:3000/api/tickets/unassigned?limit=3"
+curl.exe -s http://localhost:3000/api/tickets/113/eligible-technicians
+curl.exe -i -s -X POST http://localhost:3000/api/tickets/113/assignment -H "Content-Type: application/json" --data-binary "@data/mau/phan-cong-ktv-7.json"
+curl.exe -i -s -X POST http://localhost:3000/api/tickets/113/assignment -H "Content-Type: application/json" --data-binary "@data/mau/phan-cong-ktv-2.json"
+curl.exe -i -s -X POST http://localhost:3000/api/tickets/113/assignment -H "Content-Type: application/json" --data-binary "@data/mau/phan-cong-ktv-2.json"
+curl.exe -i -s -X POST http://localhost:3000/api/tickets -H "Content-Type: application/json" --data-binary "@data/mau/tiep-nhan-hop-le.json"
+curl.exe -i -s -X POST http://localhost:3000/api/tickets -H "Content-Type: application/json" --data-binary "@data/mau/tiep-nhan-thieu-truong.json"
+```
+
+Kết quả đúng, theo thứ tự: danh sách có `total: 12` và 3 phiếu; danh sách KTV đủ điều kiện của phiếu 113, KTV mã 2 có `proficiency: 3` (đúng mức biên); gán KTV 7 (trung tâm 5) bị `400 TECH_NOT_ELIGIBLE` vì khác trung tâm; gán KTV 2 trả `201` với `status: DA_PHAN_CONG`; gán lần hai trả `409 TICKET_ALREADY_ASSIGNED` (không ghi đè); tiếp nhận hợp lệ trả `201` kèm `ticket_code` dạng `BH-00xxxx/2026`; tiếp nhận sai trả `400` với `error.fields` liệt kê từng trường. Sau lệnh gán thành công, `total` của danh sách phiếu chưa phân công giảm còn 11.
+
+Kết quả đúng của nhóm lệnh kỹ thuật viên: `/health` trả `{"status":"ok","db":"ok"}`; lệnh POST đầu trả `201 Created` kèm kỹ thuật viên mới; lệnh POST thứ hai trả `400 Bad Request` kèm tên các trường sai (`full_name`, `center_id`, `level`); lệnh DELETE (mã 39 là KTV vừa tạo ở lệnh POST đầu trên CSDL mới seed; dùng mã trong phản hồi của bạn nếu khác) chuyển KTV sang `is_active = false` (xóa mềm, dòng dữ liệu vẫn còn). Nếu chữ tiếng Việt hiện lỗi font trong PowerShell, chạy `chcp 65001` trước.
 
 ## 5. Cấu trúc thư mục và tài liệu
 
@@ -60,12 +79,16 @@ src/routes/          chuyển đổi HTTP <-> nghiệp vụ (chỉ nơi này bi�
 src/services/        quy tắc nghiệp vụ, không phụ thuộc giao thức web
 src/repositories/    đọc/ghi PostgreSQL, không chứa quy tắc nghiệp vụ
 src/contracts/       hợp đồng dữ liệu ở ranh giới (hình dạng JSON trả ra)
-src/validators/      kiểm tra định dạng dữ liệu vào
+src/validators/      kiểm tra định dạng dữ liệu vào (kể cả chuẩn hóa số điện thoại, QT-02)
 src/errors/          lỗi nghiệp vụ có mã
 src/db/runner.js     bộ chạy migration và seed
 migrations/          001_init.sql: dựng 6 bảng theo DDL BT1
-seeds/               dữ liệu mẫu lấy từ bộ dữ liệu Mekong Mobile
-web/                 giao diện tĩnh (HTML + ES module): lớp client API và ba trạng thái
+seeds/               dữ liệu mẫu Mekong Mobile: 38 KTV, 159 kỹ năng, 1.063 khách, 1.098 phiếu đang mở (12 phiếu MOI)
+web/src/api/         lớp client API (chỗ duy nhất được gọi fetch) và các tệp *.api.js
+web/src/components/  DataState (đang tải / rỗng / lỗi) và hàm dựng DOM an toàn
+web/src/pages/       bốn màn hình: danh sách phiếu, chi tiết và phân công, tiếp nhận, kỹ thuật viên
+web/src/lib/         logic thuần (ba trạng thái, định dạng) để kiểm thử bằng node --test
+scripts/             tao-seed-phieu.py: sinh seeds/003 và 004 từ bộ dữ liệu mẫu (không cần chạy lại)
 tests/               kiểm thử (node --test)
 data/mau/            tệp JSON mẫu để gọi thử API
 docs/                tài liệu thiết kế
@@ -83,17 +106,16 @@ docs/                tài liệu thiết kế
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
-## 6. Trạng thái hiện tại (buổi 9)
+## 6. Trạng thái hiện tại (buổi 10)
 
 - [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors, contracts)
-- [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; chạy lại không lỗi
-- [x] Seed 38 kỹ thuật viên và 159 dòng tay nghề từ bộ dữ liệu mẫu; chạy lại không nhân đôi
-- [x] CRUD thực thể Technician qua ba lớp (xóa mềm) kèm quy tắc "KTV đang giữ phiếu thì không được ngừng hoạt động"
-- [x] Hợp đồng dữ liệu ở ranh giới (`src/contracts/`) và khung lỗi thống nhất có `error.fields` (TD-19, `docs/api-contract.md` mục 2.8)
-- [x] JSDoc cho hàm công khai; comment ghi lý do và mã quy tắc
-- [x] 40 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp routes-service-repository; không cần CSDL)
-- [x] Một màn hình (`web/`) gọi API qua lớp client riêng, xử lý đủ ba trạng thái đang tải / rỗng / lỗi: sau `npm start` mở http://localhost:3000/
-- [x] Chạy migrate/seed hai lần (39 và 159 dòng), `npm start`, gọi thử API bằng curl trên máy sinh viên: bằng chứng ở `docs/bang-chung-chay-thuc-te.md`
-- [ ] Thực thể thứ hai (Ticket), quy tắc phân công và đặt lịch: chờ các buổi sau
-- [ ] Thêm màn hình thứ hai, thứ ba và xác thực JWT: chờ hướng dẫn buổi 10
-- Ghi chú: danh sách trên trang `web/` chưa có phân trang (hiện 20 dòng đầu); ghi vào việc cần làm ở buổi 10.
+- [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; seed 38 KTV, 159 kỹ năng, 1.063 khách, 1.098 phiếu; chạy lại không nhân đôi (`docs/bang-chung-chay-thuc-te.md`)
+- [x] Thực thể 1, Technician: CRUD qua ba lớp (xóa mềm), quy tắc "KTV đang giữ phiếu thì không được ngừng hoạt động"
+- [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận; quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
+- [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
+- [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
+- [x] 83 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
+- [ ] Ảnh chụp màn hình toàn luồng trong `docs/anh/` và `docs/bang-chung-luong-chinh.md` (sinh viên chụp trên máy)
+- [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
+- [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
+- Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
