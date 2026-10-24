@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kỹ thuật viên – Smart CRM Mekong Mobile</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 52rem; padding: 0 1rem; color: #1a1a1a; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #ddd; }
+    #trang-thai { padding: 1rem; background: #f3f4f6; border-radius: .5rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>Kỹ thuật viên</h1>
+  <p>Câu hỏi màn hình này trả lời: <strong>trung tâm nào đang có những kỹ thuật viên nào có thể nhận phiếu?</strong></p>
+  <label>Trạng thái
+    <select id="loc">
+      <option value="">Tất cả</option>
+      <option value="true" selected>Đang hoạt động</option>
+      <option value="false">Ngừng hoạt động</option>
+    </select>
+  </label>
+  <div id="trang-thai" role="status" aria-live="polite"></div>
+  <button id="thu-lai" hidden>Thử lại</button>
+  <table id="bang" hidden>
+    <thead><tr><th>Mã</th><th>Họ tên</th><th>Trung tâm</th><th>Cấp</th><th>Trạng thái</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <script type="module" src="main.mjs"></script>
+</body>
+</html>

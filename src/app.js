@@ -1,4 +1,5 @@
 'use strict';
+const path = require('node:path');
 const express = require('express');
 const TechnicianRepository = require('./repositories/technician.repository');
 const { TechnicianService } = require('./services/technician.service');
@@ -20,6 +21,9 @@ function buildApp(pool) {
 
   const technicianService = new TechnicianService(new TechnicianRepository(pool));
   app.use('/api/technicians', technicianRoutes(technicianService));
+
+  // Giao diện tĩnh (thư mục web/). Đặt SAU /api để đường dẫn API không bị file tĩnh che; không cần bước build.
+  app.use(express.static(path.join(__dirname, '..', 'web')));
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Đường dẫn không tồn tại.' } });
