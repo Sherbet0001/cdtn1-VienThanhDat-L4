@@ -207,7 +207,17 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `web/`, `src/app.js` (thêm `express.static`), `tests/web.datastate.test.js`.
 - **Trạng thái:** Một màn hình, đã thử trong trình duyệt với máy chủ giả; chưa thử với PostgreSQL thật. Yêu cầu ≥ 3 màn hình và xác thực (TD-18) làm ở buổi 10 theo hướng dẫn.
 
-## 7. Điểm còn mở
+## 7. Thay đổi khi làm buổi 10 (24/10/2026)
+
+### TD-21 — Seed phiếu đang mở và khách hàng từ bộ dữ liệu mẫu
+
+- **Nguồn:** luồng chính UC3 cần phiếu và khách hàng thật; `tickets_history.csv` có 7.800 phiếu nhưng không có phiếu nào ở trạng thái `MOI`, và `customers_raw.csv` có số điện thoại nhiều định dạng ("0763247885", "+84…", "0763 247 885", "0763.247.885", trống).
+- **Quyết định:** SỬA. Seed chỉ phiếu ĐANG MỞ (`DA_PHAN_CONG`, `DANG_XU_LY`, `CHO_LINH_KIEN`: 1.162 phiếu), chuẩn hóa số điện thoại theo QT-02, bỏ 64 phiếu của 61 khách không có số hợp lệ, gộp 4 cặp khách trùng số điện thoại, và đặt lại 12 phiếu nhận gần nhất (2 phiếu mỗi trung tâm) về `MOI`. Kết quả: 1.063 khách, 1.098 phiếu (12 `MOI`). Phiếu đã đóng và hoàn tất (6.638 phiếu) không nạp.
+- **Lý do:** Chức năng L4 chỉ dùng phiếu đang giữ để tính khối lượng của kỹ thuật viên và phiếu `MOI` để phân công; `phone` của ERD là `NOT NULL UNIQUE`, nên khách không có số hợp lệ không thể nạp. Số phiếu `MOI` tự đặt lại là dữ liệu dựng cho luồng chính, không phải dữ liệu gốc.
+- **Ảnh hưởng:** `seeds/003_customers.sql`, `seeds/004_tickets.sql` (do `scripts/tao-seed-phieu.py` sinh ra); ERD và DDL không đổi.
+- **Trạng thái:** Đã chạy hai lần trên PostgreSQL 16: giữ nguyên 1.063 khách và 1.098 phiếu. 12 phiếu `MOI` có hạn cam kết đã trôi qua (dữ liệu năm 2024–2026), nên màn hình sẽ hiển thị là quá hạn; không sửa ngày để giữ dữ liệu thật.
+
+## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
