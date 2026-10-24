@@ -1,5 +1,6 @@
 // Bộ định tuyến theo #hash: không cần máy chủ cấu hình thêm. Mỗi trang tự vẽ vào #app.
 import { trangChiTiet } from './pages/ticketDetail.js';
+import { trangTiepNhan } from './pages/intake.js';
 import { trangDanhSach } from './pages/ticketList.js';
 import { trangKyThuatVien } from './pages/technicians.js';
 
@@ -8,6 +9,7 @@ const goc = document.getElementById('app');
 const CAC_TRANG = [
   [/^#\/?$/, () => trangDanhSach(goc), '#/'],
   [/^#\/tickets\/(\d+)$/, (m) => trangChiTiet(goc, Number(m[1])), '#/'],
+  [/^#\/intake$/, () => trangTiepNhan(goc), '#/intake'],
   [/^#\/technicians$/, () => trangKyThuatVien(goc), '#/technicians'],
 ];
 

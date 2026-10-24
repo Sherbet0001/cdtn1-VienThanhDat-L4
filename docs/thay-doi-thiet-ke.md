@@ -236,9 +236,10 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 ### TD-24 — Giao diện bố trí theo `web/src`, màn hình 1–2 của luồng phân công
 
 - **Nguồn:** đề buổi 10 yêu cầu lớp client `src/api/client.js`, tệp `*.api.js` cho nghiệp vụ phiếu, ba màn hình bọc bằng thành phần DataState.
-- **Quyết định:** Đặt toàn bộ ở `web/src/` đúng tên đề yêu cầu: `api/client.js`, `api/tickets.api.js`, `api/technicians.api.js`, `components/DataState.js`, ba trang `pages/` (danh sách phiếu chưa phân công, chi tiết và phân công, kỹ thuật viên); màn tiếp nhận làm ở checkpoint sau. Định tuyến bằng `#hash` nên không cần máy chủ cấu hình thêm. Danh sách kỹ thuật viên nay có phân trang.
+- **Quyết định:** Đặt toàn bộ ở `web/src/` đúng tên đề yêu cầu: `api/client.js`, `api/tickets.api.js`, `api/technicians.api.js`, `components/DataState.js`, bốn trang `pages/` (danh sách phiếu chưa phân công, chi tiết và phân công, tiếp nhận phiếu mới, kỹ thuật viên). Định tuyến bằng `#hash` nên không cần máy chủ cấu hình thêm. Danh sách kỹ thuật viên nay có phân trang.
 - **Lý do:** Giữ cách không cần bước build (TD-20) nhưng vẫn khớp tên và cấu trúc đề nêu; phép thử "không có `fetch(` ngoài lớp client" được kiểm bằng test.
 - **Ảnh hưởng:** `web/`, `tests/web.test.js`.
+- **Không làm:** đăng nhập và xử lý 401 (TD-18 vẫn mở): nằm trong phần được phép cắt của đề buổi 10, ưu tiên giữ luồng chính, ba trạng thái, test và README. Màn tiếp nhận là biểu mẫu nên không có trạng thái "rỗng"; nó xử lý lỗi theo từng trường và lỗi mạng (giữ nguyên dữ liệu đã nhập). Ba trạng thái áp dụng cho hai màn có danh sách và màn chi tiết.
 - **Trạng thái:** Đã thử trong trình duyệt với máy chủ giả dùng đúng handler, service, repository và hợp đồng của dự án (đủ các trạng thái: có dữ liệu, rỗng, lỗi có nút Thử lại; phân công thành công; xung đột 409 tải lại và hiện người phụ trách). Chưa thử với PostgreSQL thật trong sandbox vì không cài được gói npm.
 
 ## 8. Điểm còn mở
