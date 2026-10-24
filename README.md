@@ -79,6 +79,7 @@ docs/                tài liệu thiết kế
 | `schema.sql` | DDL PostgreSQL của BT1 (bản đọc; bản chạy là `migrations/001_init.sql`) |
 | `api-contract.md` | Hợp đồng API |
 | `thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế (TD-01 trở đi) |
+| `bang-chung-chay-thuc-te.md` | Kết quả chạy thật: migrate, seed, curl, giao diện |
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
@@ -92,7 +93,7 @@ docs/                tài liệu thiết kế
 - [x] JSDoc cho hàm công khai; comment ghi lý do và mã quy tắc
 - [x] 40 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp routes-service-repository; không cần CSDL)
 - [x] Một màn hình (`web/`) gọi API qua lớp client riêng, xử lý đủ ba trạng thái đang tải / rỗng / lỗi: sau `npm start` mở http://localhost:3000/
-- [ ] Gọi thử API bằng curl trên máy sinh viên và lưu ảnh kết quả vào `docs/` (cần PostgreSQL; đang hoãn)
+- [x] Chạy migrate/seed hai lần (39 và 159 dòng), `npm start`, gọi thử API bằng curl trên máy sinh viên: bằng chứng ở `docs/bang-chung-chay-thuc-te.md`
 - [ ] Thực thể thứ hai (Ticket), quy tắc phân công và đặt lịch: chờ các buổi sau
 - [ ] Thêm màn hình thứ hai, thứ ba và xác thực JWT: chờ hướng dẫn buổi 10
-- Ghi chú: các lệnh `npm run migrate`, `npm run seed` và `npm start` mới được kiểm chứng ở mức SQL và mức nghiệp vụ; chạy đầy đủ trên máy sinh viên chưa thực hiện. Trang `web/` đã được thử trong trình duyệt với máy chủ giả, chưa thử với CSDL thật.
+- Ghi chú: danh sách trên trang `web/` chưa có phân trang (hiện 20 dòng đầu); ghi vào việc cần làm ở buổi 10.
