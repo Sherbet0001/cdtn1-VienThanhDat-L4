@@ -1,39 +1,14 @@
 'use strict';
 /**
  * Lớp routes: dịch giữa HTTP và nghiệp vụ. KHÔNG chứa quy tắc nghiệp vụ.
- * Bảng HTTP_THEO_MA dưới đây là chỗ DUY NHẤT trong dự án đổi mã lỗi nghiệp vụ sang mã HTTP.
+ * Bảng đổi mã lỗi nghiệp vụ sang mã HTTP nằm ở ./http.js (chỗ DUY NHẤT).
  * Hình dạng dữ liệu trả ra do src/contracts/technician.contract.js quyết định; lỗi dạng { error: { code, message, field } }.
  */
 const {
   validateTechnician, validateId, validateListQuery,
 } = require('../validators/technician.validator');
 const { toTechnicianView: toJson } = require('../contracts/technician.contract');
-
-const HTTP_THEO_MA = Object.freeze({
-  VALIDATION_ERROR: 400,
-  TECHNICIAN_NOT_FOUND: 404,
-  TECHNICIAN_HAS_OPEN_TICKETS: 409,   // xung đột với trạng thái hiện tại của dữ liệu
-});
-
-/** Lỗi đã biết -> { error: { code, message, field?, fields?, details? } }. Khung lỗi DUY NHẤT của API (TD-19). */
-function loiJson(e) {
-  const error = { code: e.code, message: e.message };
-  if (e.field !== undefined) error.field = e.field;
-  if (e.fields) error.fields = e.fields;
-  if (e.chiTiet) error.details = e.chiTiet;
-  return { error };
-}
-
-/** Bọc hàm xử lý bất đồng bộ: lỗi đã biết -> JSON có mã HTTP; lỗi lạ -> chuyển cho bộ xử lý lỗi cuối (500). */
-const boc = (fn) => async (req, res, next) => {
-  try {
-    await fn(req, res);
-  } catch (e) {
-    const ma = e && e.code && HTTP_THEO_MA[e.code];
-    if (!ma) return next(e);
-    return res.status(ma).json(loiJson(e));
-  }
-};
+const { HTTP_THEO_MA, boc } = require('./http');
 
 /** Các hàm xử lý yêu cầu. Tách khỏi Express để kiểm thử được bằng req/res giả. */
 function makeHandlers(service) {

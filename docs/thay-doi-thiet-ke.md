@@ -217,6 +217,14 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `seeds/003_customers.sql`, `seeds/004_tickets.sql` (do `scripts/tao-seed-phieu.py` sinh ra); ERD và DDL không đổi.
 - **Trạng thái:** Đã chạy hai lần trên PostgreSQL 16: giữ nguyên 1.063 khách và 1.098 phiếu. 12 phiếu `MOI` có hạn cam kết đã trôi qua (dữ liệu năm 2024–2026), nên màn hình sẽ hiển thị là quá hạn; không sửa ngày để giữ dữ liệu thật.
 
+### TD-22 — Thêm chi tiết phiếu, tiếp nhận phiếu và lọc theo trung tâm
+
+- **Nguồn:** đề buổi 10 yêu cầu ba màn hình (danh sách, chi tiết, tiếp nhận) nối API thật; hợp đồng BT1 không có endpoint tạo phiếu (tiếp nhận thuộc L2, ngoài phạm vi, TD-01) và lấy trung tâm của quản lý từ token (QT-14), trong khi xác thực chưa làm (TD-18).
+- **Quyết định:** SỬA. Thêm `GET /api/tickets/{id}` và `POST /api/tickets` (tạo phiếu `MOI` để có đầu vào cho luồng phân công); danh sách chưa phân công nhận thêm tham số tùy chọn `center_id` thay cho trung tâm lấy từ token.
+- **Lý do:** Dữ liệu mẫu không có phiếu `MOI`, nên cần cách tạo phiếu để chạy luồng chính từ đầu đến cuối; `center_id` làm bộ lọc tạm cho đến khi có xác thực. Phạm vi POST chỉ gồm trường tối thiểu, không thêm chức năng L2 (không SMS, không tra cứu bảo hành).
+- **Ảnh hưởng:** `src/routes/ticket.routes.js`, `src/services/ticket.service.js`, `src/services/ticket.rules.js` (QT-04), `src/validators/phone.js` (QT-02), `src/repositories/ticket.repository.js`, `docs/api-contract.md` (Mục 1, 2.1, 2.9).
+- **Trạng thái:** Đã viết, 28 test mới (tổng 68) PASS; câu SQL đã chạy trên PostgreSQL 16 (sắp theo hạn, mã phiếu theo năm giờ Việt Nam, khách trùng số dùng lại bản ghi cũ).
+
 ## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.

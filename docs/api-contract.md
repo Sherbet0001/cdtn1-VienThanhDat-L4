@@ -19,7 +19,10 @@ Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bả
 | 11 | PUT | /api/technicians/{id} | Sửa toàn bộ kỹ thuật viên | Quản lý | FR2 | US2 | UC2 | BT2 |
 | 12 | DELETE | /api/technicians/{id} | Ngừng hoạt động (xóa mềm) | Quản lý | FR2 | US2 | UC2 | BT2 |
 
-Các endpoint 8–12 được thêm khi hiện thực BT2 (TD-15, TD-16, TD-19); mô tả ở Mục 2.8.
+| 13 | GET | /api/tickets/{ticketId} | Chi tiết một phiếu | Quản lý | FR2 | US2 | UC3 | BT2 |
+| 14 | POST | /api/tickets | Tiếp nhận phiếu mới (trạng thái MOI) | Quản lý | – | – | – | BT2 |
+
+Các endpoint 8–12 được thêm khi hiện thực BT2 (TD-15, TD-16, TD-19); mô tả ở Mục 2.8. Các endpoint 13–14 thêm ở buổi 10 (TD-22); mô tả ở Mục 2.9.
 
 Giá trị enum dùng ASCII không dấu, đối chiếu với tên trong SRS:
 
@@ -50,7 +53,7 @@ Quy ước mã HTTP: dữ liệu vào sai → 400; không tìm thấy → 404; x
 
 #### 2.1 GET /api/tickets/unassigned (FR1)
 
-Query: page (mặc định 1, ≥ 1), limit (mặc định 20, 1–100). Sắp theo due_date tăng dần. Chỉ trả phiếu thuộc trung tâm của quản lý (QT-14).
+Query: page (mặc định 1, ≥ 1), limit (mặc định 20, 1–100), center_id (tùy chọn; xem TD-22). Sắp theo due_date tăng dần. Chỉ trả phiếu thuộc trung tâm của quản lý (QT-14).
 
 Response 200:
 
@@ -263,6 +266,25 @@ POST và PUT nhận `full_name` (1–100 ký tự), `center_id` (số nguyên �
 | 400 | VALIDATION_ERROR: dữ liệu hoặc mã trong đường dẫn sai định dạng, JSON hỏng |
 | 404 | TECHNICIAN_NOT_FOUND |
 | 409 | TECHNICIAN_HAS_OPEN_TICKETS: ngừng hoạt động khi còn phiếu DA_PHAN_CONG, DANG_XU_LY hoặc CHO_LINH_KIEN |
+
+#### 2.9 GET /api/tickets/{id} và POST /api/tickets (buổi 10)
+
+Hình dạng một phiếu (hợp đồng đầy đủ ở `src/contracts/ticket.contract.js`) giống phần tử `items` ở Mục 2.1, thêm `center_id`, `technician_id` và `technician_name` (null khi chưa phân công).
+
+POST nhận:
+
+```json
+{ "customer_name": "Nguyễn Văn An", "customer_phone": "0901 234 567", "device_name": "iPhone 14", "issue_category": "MAN_HINH", "priority": "CAO", "center_id": 2 }
+```
+
+`priority` tùy chọn (mặc định theo nhóm sự cố: MAN_HINH, NUOC_VAO → CAO; PIN, SAC, KHAC → TRUNG_BINH; PHAN_MEM → THAP). Số điện thoại được chuẩn hóa theo QT-02; khách đã có số này thì dùng lại bản ghi cũ. Hạn cam kết sinh theo QT-04 (không tính Chủ nhật). Mã phiếu dạng BH-000123/2026 do hệ thống sinh.
+
+| Mã | Khi nào |
+| --- | --- |
+| 200 | GET thành công |
+| 201 | POST thành công; header Location trỏ tới /api/tickets/{id} |
+| 400 | VALIDATION_ERROR (thiếu trường, số điện thoại sai, nhóm sự cố hoặc mức ưu tiên lạ, mã phiếu không phải số) |
+| 404 | TICKET_NOT_FOUND |
 
 ### 3. Quy tắc validation theo trường
 

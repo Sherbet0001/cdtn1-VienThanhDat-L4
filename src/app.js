@@ -4,6 +4,9 @@ const express = require('express');
 const TechnicianRepository = require('./repositories/technician.repository');
 const { TechnicianService } = require('./services/technician.service');
 const technicianRoutes = require('./routes/technician.routes');
+const TicketRepository = require('./repositories/ticket.repository');
+const { TicketService } = require('./services/ticket.service');
+const ticketRoutes = require('./routes/ticket.routes');
 
 /** Ghép các lớp lại với nhau. Nhận pool để kiểm thử được bằng đối tượng giả. */
 function buildApp(pool) {
@@ -21,6 +24,7 @@ function buildApp(pool) {
 
   const technicianService = new TechnicianService(new TechnicianRepository(pool));
   app.use('/api/technicians', technicianRoutes(technicianService));
+  app.use('/api/tickets', ticketRoutes(new TicketService(new TicketRepository(pool))));
 
   // Giao diện tĩnh (thư mục web/). Đặt SAU /api để đường dẫn API không bị file tĩnh che; không cần bước build.
   app.use(express.static(path.join(__dirname, '..', 'web')));
