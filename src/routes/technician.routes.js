@@ -15,10 +15,11 @@ const HTTP_THEO_MA = Object.freeze({
   TECHNICIAN_HAS_OPEN_TICKETS: 409,   // xung đột với trạng thái hiện tại của dữ liệu
 });
 
-/** Lỗi đã biết -> { error: { code, message, field, details } }. */
+/** Lỗi đã biết -> { error: { code, message, field?, fields?, details? } }. Khung lỗi DUY NHẤT của API (TD-19). */
 function loiJson(e) {
   const error = { code: e.code, message: e.message };
   if (e.field !== undefined) error.field = e.field;
+  if (e.fields) error.fields = e.fields;
   if (e.chiTiet) error.details = e.chiTiet;
   return { error };
 }

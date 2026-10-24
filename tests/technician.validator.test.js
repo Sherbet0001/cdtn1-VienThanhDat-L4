@@ -18,7 +18,7 @@ test('dữ liệu hợp lệ: cắt khoảng trắng đầu cuối và mặc đ�
 test('tên dài đúng 100 ký tự được nhận, 101 ký tự bị từ chối', () => {
   assert.equal(validateTechnician({ ...hopLe, full_name: 'a'.repeat(TEN_TOI_DA) }).fullName.length, 100);
   assert.throws(() => validateTechnician({ ...hopLe, full_name: 'a'.repeat(TEN_TOI_DA + 1) }),
-    (e) => e instanceof ValidationError && e.chiTiet.cac_truong[0].truong === 'full_name');
+    (e) => e instanceof ValidationError && e.fields[0].field === 'full_name');
 });
 
 test('center_id: 1 được nhận, 0 bị từ chối', () => {
@@ -29,7 +29,7 @@ test('center_id: 1 được nhận, 0 bị từ chối', () => {
 /* ---- Dữ liệu sai ---- */
 test('thiếu trường bắt buộc: báo đủ tên các trường thiếu', () => {
   assert.throws(() => validateTechnician({}), (e) => {
-    const ten = e.chiTiet.cac_truong.map((x) => x.truong);
+    const ten = e.fields.map((x) => x.field);
     assert.deepEqual(ten, ['full_name', 'center_id', 'level']);
     assert.match(e.message, /full_name, center_id, level/);
     return e.code === 'VALIDATION_ERROR';
@@ -39,7 +39,7 @@ test('thiếu trường bắt buộc: báo đủ tên các trường thiếu', (
 test('sai kiểu và sai giá trị: level lạ, tên toàn dấu cách, is_active là chuỗi', () => {
   assert.throws(
     () => validateTechnician({ full_name: '   ', center_id: '2', level: 'GIOI', is_active: 'yes' }),
-    (e) => e.chiTiet.cac_truong.map((x) => x.truong).join() === 'full_name,center_id,level,is_active');
+    (e) => e.fields.map((x) => x.field).join() === 'full_name,center_id,level,is_active');
 });
 
 test('body không phải đối tượng JSON thì bị từ chối', () => {

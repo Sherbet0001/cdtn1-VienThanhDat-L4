@@ -45,7 +45,7 @@ test('POST thiếu trường bắt buộc: trả 400, error.field là trường 
   assert.equal(res.statusCode, 400);
   assert.equal(res.body.error.code, 'VALIDATION_ERROR');
   assert.equal(res.body.error.field, 'full_name');
-  assert.deepEqual(res.body.error.details.cac_truong.map((x) => x.truong), ['full_name', 'center_id', 'level']);
+  assert.deepEqual(res.body.error.fields.map((x) => x.field), ['full_name', 'center_id', 'level']);
 });
 
 test('mã trong đường dẫn không hợp lệ ("abc"): trả 400, không chạm service', async () => {
@@ -80,4 +80,13 @@ test('lỗi lạ (không có mã đã biết) được chuyển cho bộ xử l�
   await h.get({ params: { id: '7' } }, res, (e) => { daChuyen = e; });
   assert.equal(daChuyen.message, 'mất kết nối');
   assert.equal(res.body, undefined);
+});
+
+test('khung lỗi 400: fields liệt kê mọi trường sai kèm lý do; không còn details.cac_truong', async () => {
+  const h = makeHandlers({ create: async () => assert.fail('không được gọi service') });
+  const res = taoRes();
+  await h.create({ body: { full_name: '', center_id: 0, level: 'X' } }, res, assert.fail);
+  assert.deepEqual(Object.keys(res.body.error).sort(), ['code', 'field', 'fields', 'message']);
+  assert.ok(res.body.error.fields.every((f) => typeof f.field === 'string' && typeof f.reason === 'string'));
+  assert.equal(res.body.error.fields.length, 3);
 });

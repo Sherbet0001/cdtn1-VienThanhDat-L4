@@ -162,7 +162,7 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Nguồn:** đề BT2 yêu cầu ít nhất hai thực thể có đủ tạo–đọc–sửa–xóa qua ba lớp; hợp đồng API BT1 chỉ có 7 endpoint nghiệp vụ, không có CRUD kỹ thuật viên.
 - **Quyết định:** SỬA. Thêm `GET /api/technicians`, `GET /api/technicians/{id}`, `POST /api/technicians`, `PUT /api/technicians/{id}`, `DELETE /api/technicians/{id}`. Phản hồi dùng trường snake_case và lỗi dạng `{ "error": { "code", "message", "field" } }` đúng quy ước chung của BT1; danh sách trả `{ items, limit, offset }`. Mã lỗi mới: `TECHNICIAN_NOT_FOUND` (404) và `TECHNICIAN_HAS_OPEN_TICKETS` (409), cộng `VALIDATION_ERROR` (400) đã có.
 - **Lý do:** Thực thể kỹ thuật viên có sẵn trong ERD và trong dữ liệu mẫu (38 dòng), nên là thực thể đầu tiên dễ kiểm chứng; bảy endpoint nghiệp vụ của BT1 vẫn giữ nguyên, thực hiện ở các buổi sau.
-- **Ảnh hưởng:** `src/routes/technician.routes.js`, `src/services/technician.service.js`, `src/repositories/technician.repository.js`, `src/validators/technician.validator.js`; `docs/api-contract.md` chưa cập nhật phần này.
+- **Ảnh hưởng:** `src/routes/technician.routes.js`, `src/services/technician.service.js`, `src/repositories/technician.repository.js`, `src/validators/technician.validator.js`; `docs/api-contract.md` Mục 2.8 (cập nhật ở TD-19).
 - **Trạng thái:** Đã viết và có 25 kiểm thử đơn vị PASS (service, validator, routes, bộ chạy migration). Các câu SQL của repository đã chạy thử trên PostgreSQL 16; chạy đủ qua Express trên máy sinh viên chưa thực hiện.
 
 ### TD-16 — Xóa mềm kỹ thuật viên và quy tắc đang giữ phiếu
@@ -189,10 +189,19 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `src/app.js`, `src/routes/`. Chỉ chạy cục bộ; không triển khai công khai khi chưa có xác thực.
 - **Trạng thái:** Chưa làm.
 
-## 6. Điểm còn mở
+## 6. Thay đổi khi làm buổi 9 (24/10/2026)
+
+### TD-19 — Khung lỗi thêm `fields`, giữ nguyên phần còn lại
+
+- **Nguồn:** bài giảng buổi 9 và checklist tự kiểm yêu cầu API trả lỗi thống nhất gồm `error`, `message`, `fields`, lỗi người dùng trả 4xx; ví dụ trong bài dùng `{data}` và mã 422.
+- **Quyết định:** SỬA CỘNG THÊM. Giữ khung `{ error: { code, message, field } }` của BT1 và thêm `fields: [{ field, reason }]` cho `VALIDATION_ERROR`. Thay thế `details.cac_truong` (tên tiếng Việt, mới có ở buổi 8, chưa phát hành). Không đổi sang `{data}` hay 422.
+- **Lý do:** Thêm thành phần tùy chọn là thay đổi TƯƠNG THÍCH: bên gọi theo hợp đồng cũ không vỡ. Đổi sang phong bì `{data}` hoặc mã 422 là thay đổi PHÁ VỠ, làm hỏng hợp đồng BT1 đã nộp mà không thêm giá trị.
+- **Ảnh hưởng:** `src/errors/AppError.js`, `src/validators/technician.validator.js`, `src/routes/technician.routes.js`, `docs/api-contract.md` (Mục 1, 2.8; phiên bản 1.2), các test liên quan. Đồng thời đóng điểm mở "api-contract chưa có mục /api/technicians".
+- **Trạng thái:** Đã sửa, test PASS. `details` vẫn dùng cho số liệu nghiệp vụ (`so_phieu`).
+
+## 7. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
 3. Test đồng thời TC-11 chưa làm (TD-08).
 4. Thực thể CRUD thứ hai (đề BT2 yêu cầu từ hai thực thể) chưa làm; chờ hướng dẫn của giảng viên cho các buổi sau.
-5. `docs/api-contract.md` chưa có mục cho `/api/technicians` (TD-15).

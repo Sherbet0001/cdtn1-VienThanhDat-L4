@@ -14,11 +14,17 @@ class AppError extends Error {
   }
 }
 
-/** Dữ liệu vào sai định dạng; cacTruong là danh sách { truong, ly_do }, field là trường sai đầu tiên. */
+/**
+ * Dữ liệu vào sai định dạng.
+ * @param {string} message Câu thông báo chung.
+ * @param {Array<{field:string, reason:string}>} fields Mọi trường sai (hợp đồng lỗi: error.fields).
+ * Thuộc tính `field` lấy trường sai đầu tiên để bên gọi đơn giản vẫn có chỗ bám.
+ */
 class ValidationError extends AppError {
-  constructor(message, cacTruong) {
-    super('VALIDATION_ERROR', message, { cac_truong: cacTruong }, cacTruong[0] && cacTruong[0].truong);
+  constructor(message, fields) {
+    super('VALIDATION_ERROR', message, undefined, fields[0] && fields[0].field);
     this.name = 'ValidationError';
+    this.fields = fields;
   }
 }
 

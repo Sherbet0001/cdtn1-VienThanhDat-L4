@@ -1,6 +1,6 @@
 # API contract – L4: Phân công kỹ thuật viên và lịch hẹn
 
-Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bản 1.1 (BT1) Định dạng: JSON, UTF-8. Thời gian theo ISO 8601 múi giờ +07:00. Tiền tố đường dẫn: /api. Xác thực nhân viên (quản lý, kỹ thuật viên): header Authorization: Bearer <token>; vai trò và trung tâm lấy từ token. Khách hàng không dùng token mà gửi mã phiếu + số điện thoại trong body (dùng POST để số điện thoại không nằm trên URL).
+Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bản 1.2 (BT1 + BT2) Định dạng: JSON, UTF-8. Thời gian theo ISO 8601 múi giờ +07:00. Tiền tố đường dẫn: /api. Xác thực nhân viên (quản lý, kỹ thuật viên): header Authorization: Bearer <token>; vai trò và trung tâm lấy từ token. Khách hàng không dùng token mà gửi mã phiếu + số điện thoại trong body (dùng POST để số điện thoại không nằm trên URL).
 
 ### 1. Danh sách endpoint
 
@@ -13,6 +13,13 @@ Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bả
 | 5 | GET | /api/technicians/me/tasks | Phiếu và lịch hẹn được giao | Kỹ thuật viên | FR6 | US5 | UC5 | SHOULD |
 | 6 | POST | /api/appointments | Đặt lịch hẹn giao – nhận máy | Khách | FR7, FR8 | US6 | UC6 | MUST |
 | 7 | POST | /api/appointments/available-slots | Gợi ý khung giờ trống | Khách | FR9 | US7 | UC7 | SHOULD |
+| 8 | GET | /api/technicians | Danh sách kỹ thuật viên (lọc, phân trang) | Quản lý | FR2 | US2 | UC2 | BT2 |
+| 9 | GET | /api/technicians/{id} | Chi tiết một kỹ thuật viên kèm kỹ năng | Quản lý | FR2 | US2 | UC2 | BT2 |
+| 10 | POST | /api/technicians | Tạo kỹ thuật viên | Quản lý | FR2 | US2 | UC2 | BT2 |
+| 11 | PUT | /api/technicians/{id} | Sửa toàn bộ kỹ thuật viên | Quản lý | FR2 | US2 | UC2 | BT2 |
+| 12 | DELETE | /api/technicians/{id} | Ngừng hoạt động (xóa mềm) | Quản lý | FR2 | US2 | UC2 | BT2 |
+
+Các endpoint 8–12 được thêm khi hiện thực BT2 (TD-15, TD-16, TD-19); mô tả ở Mục 2.8.
 
 Giá trị enum dùng ASCII không dấu, đối chiếu với tên trong SRS:
 
@@ -28,6 +35,16 @@ Giá trị enum dùng ASCII không dấu, đối chiếu với tên trong SRS:
 ```json
 { "error": { "code": "TECH_NOT_ELIGIBLE", "message": "Kỹ thuật viên chưa đạt mức thành thạo ≥ 3 với nhóm sự cố MAN_HINH.", "field": "technician_id" } }
 ```
+
+Từ phiên bản 1.2 (TD-19), khung lỗi có thêm hai thành phần TÙY CHỌN, bên gọi cũ không đọc cũng không vỡ:
+
+| Thành phần | Khi nào có | Ý nghĩa |
+| --- | --- | --- |
+| field | Lỗi gắn với một trường | Trường sai đầu tiên |
+| fields | VALIDATION_ERROR | Mảng `{ field, reason }` liệt kê MỌI trường sai, để giao diện tô đỏ cùng lúc |
+| details | Lỗi nghiệp vụ cần số liệu kèm theo | Ví dụ `{ "so_phieu": 2 }` khi TECHNICIAN_HAS_OPEN_TICKETS |
+
+Quy ước mã HTTP: dữ liệu vào sai → 400; không tìm thấy → 404; xung đột trạng thái dữ liệu → 409; lỗi hệ thống → 500 `INTERNAL_ERROR` (không bao giờ trả chi tiết kỹ thuật, tên bảng hay câu SQL). Lỗi của người dùng KHÔNG BAO GIỜ trả 500.
 
 ### 2. Chi tiết từng endpoint
 
@@ -221,6 +238,31 @@ Response 200:
 | 400 | Thiếu trường, from_date ở quá khứ, limit ngoài 3–10 |
 | 404 | Mã phiếu và số điện thoại không khớp |
 | 409 | Phiếu không đặt lịch được (như TICKET_NOT_BOOKABLE) |
+
+#### 2.8 CRUD /api/technicians (BT2)
+
+Hình dạng một kỹ thuật viên (hợp đồng đầy đủ ở `src/contracts/technician.contract.js`):
+
+```json
+{ "technician_id": 7, "full_name": "Trần Hoài Giang", "center_id": 4, "level": "TRUNG_CAP", "is_active": true }
+```
+
+GET chi tiết có thêm `skills: [{ "issue_category": "MAN_HINH", "proficiency": 3 }]` (có thể rỗng). Danh sách trả `{ "items": [...], "limit": 20, "offset": 0 }`; bộ lọc `center_id`, `is_active`, `limit` (1–100, mặc định 20), `offset` (≥ 0).
+
+POST và PUT nhận `full_name` (1–100 ký tự), `center_id` (số nguyên ≥ 1), `level` (`SO_CAP`, `TRUNG_CAP`, `CAO_CAP`), `is_active` (tùy chọn, mặc định true). Ví dụ lỗi nhiều trường:
+
+```json
+{ "error": { "code": "VALIDATION_ERROR", "message": "Dữ liệu không hợp lệ ở trường: full_name, level.", "field": "full_name",
+  "fields": [ { "field": "full_name", "reason": "bắt buộc" }, { "field": "level", "reason": "phải là một trong SO_CAP, TRUNG_CAP, CAO_CAP" } ] } }
+```
+
+| Mã | Khi nào |
+| --- | --- |
+| 200 | GET, PUT, DELETE thành công (DELETE trả kỹ thuật viên với is_active = false) |
+| 201 | POST thành công; header Location trỏ tới /api/technicians/{id} |
+| 400 | VALIDATION_ERROR: dữ liệu hoặc mã trong đường dẫn sai định dạng, JSON hỏng |
+| 404 | TECHNICIAN_NOT_FOUND |
+| 409 | TECHNICIAN_HAS_OPEN_TICKETS: ngừng hoạt động khi còn phiếu DA_PHAN_CONG, DANG_XU_LY hoặc CHO_LINH_KIEN |
 
 ### 3. Quy tắc validation theo trường
 
