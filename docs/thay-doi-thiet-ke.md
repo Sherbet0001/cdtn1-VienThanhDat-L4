@@ -199,9 +199,17 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `src/errors/AppError.js`, `src/validators/technician.validator.js`, `src/routes/technician.routes.js`, `docs/api-contract.md` (Mục 1, 2.8; phiên bản 1.2), các test liên quan. Đồng thời đóng điểm mở "api-contract chưa có mục /api/technicians".
 - **Trạng thái:** Đã sửa, test PASS. `details` vẫn dùng cho số liệu nghiệp vụ (`so_phieu`).
 
+### TD-20 — Giao diện đầu tiên viết bằng HTML và ES module thuần, phục vụ từ Express
+
+- **Nguồn:** tài liệu tự học buổi 9 (track SE) yêu cầu giao diện React hoặc Vue gọi API qua lớp client riêng, có ba trạng thái; ERD và kiến trúc BT1 không có thư mục giao diện riêng.
+- **Quyết định:** TẠM THỜI. Một màn hình (`web/`) viết bằng HTML + ES module, Express phục vụ như tệp tĩnh. Giữ đúng các quy tắc của tài liệu: lớp client riêng (`web/api/client.mjs`), logic ba trạng thái tách riêng và có test, không có `fetch` ngoài lớp client.
+- **Lý do:** Chưa có hướng dẫn chọn React hay Vue của giảng viên; trang thuần không cần bước build nên không thêm phụ thuộc và không đổi cách chạy ở README. Lớp client và logic trạng thái chuyển sang component React/Vue gần như nguyên vẹn.
+- **Ảnh hưởng:** `web/`, `src/app.js` (thêm `express.static`), `tests/web.datastate.test.js`.
+- **Trạng thái:** Một màn hình, đã thử trong trình duyệt với máy chủ giả; chưa thử với PostgreSQL thật. Yêu cầu ≥ 3 màn hình và xác thực (TD-18) làm ở buổi 10 theo hướng dẫn.
+
 ## 7. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
 3. Test đồng thời TC-11 chưa làm (TD-08).
-4. Thực thể CRUD thứ hai (đề BT2 yêu cầu từ hai thực thể) chưa làm; chờ hướng dẫn của giảng viên cho các buổi sau.
+4. Giao diện mới có một màn hình (TD-20); thực thể CRUD thứ hai (đề BT2 yêu cầu từ hai thực thể) chưa làm; chờ hướng dẫn của giảng viên cho các buổi sau.

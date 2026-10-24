@@ -59,11 +59,13 @@ Kết quả đúng: `/health` trả `{"status":"ok","db":"ok"}`; lệnh POST đ�
 src/routes/          chuyển đổi HTTP <-> nghiệp vụ (chỉ nơi này biết mã HTTP)
 src/services/        quy tắc nghiệp vụ, không phụ thuộc giao thức web
 src/repositories/    đọc/ghi PostgreSQL, không chứa quy tắc nghiệp vụ
+src/contracts/       hợp đồng dữ liệu ở ranh giới (hình dạng JSON trả ra)
 src/validators/      kiểm tra định dạng dữ liệu vào
 src/errors/          lỗi nghiệp vụ có mã
 src/db/runner.js     bộ chạy migration và seed
 migrations/          001_init.sql: dựng 6 bảng theo DDL BT1
 seeds/               dữ liệu mẫu lấy từ bộ dữ liệu Mekong Mobile
+web/                 giao diện tĩnh (HTML + ES module): lớp client API và ba trạng thái
 tests/               kiểm thử (node --test)
 data/mau/            tệp JSON mẫu để gọi thử API
 docs/                tài liệu thiết kế
@@ -80,14 +82,17 @@ docs/                tài liệu thiết kế
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
-## 6. Trạng thái hiện tại (buổi 8)
+## 6. Trạng thái hiện tại (buổi 9)
 
-- [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors)
+- [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors, contracts)
 - [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; chạy lại không lỗi
 - [x] Seed 38 kỹ thuật viên và 159 dòng tay nghề từ bộ dữ liệu mẫu; chạy lại không nhân đôi
 - [x] CRUD thực thể Technician qua ba lớp (xóa mềm) kèm quy tắc "KTV đang giữ phiếu thì không được ngừng hoạt động"
-- [x] 25 kiểm thử đơn vị PASS bằng `npm test` (không cần CSDL)
-- [ ] Gọi thử API bằng curl trên máy sinh viên và lưu ảnh kết quả vào `docs/`
+- [x] Hợp đồng dữ liệu ở ranh giới (`src/contracts/`) và khung lỗi thống nhất có `error.fields` (TD-19, `docs/api-contract.md` mục 2.8)
+- [x] JSDoc cho hàm công khai; comment ghi lý do và mã quy tắc
+- [x] 40 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp routes-service-repository; không cần CSDL)
+- [x] Một màn hình (`web/`) gọi API qua lớp client riêng, xử lý đủ ba trạng thái đang tải / rỗng / lỗi: sau `npm start` mở http://localhost:3000/
+- [ ] Gọi thử API bằng curl trên máy sinh viên và lưu ảnh kết quả vào `docs/` (cần PostgreSQL; đang hoãn)
 - [ ] Thực thể thứ hai (Ticket), quy tắc phân công và đặt lịch: chờ các buổi sau
-- [ ] Giao diện, xác thực JWT: chưa làm
-- Ghi chú: các lệnh `npm run migrate`, `npm run seed` và `npm start` mới được kiểm chứng ở mức SQL và mức nghiệp vụ; chạy đầy đủ trên máy sinh viên chưa thực hiện.
+- [ ] Thêm màn hình thứ hai, thứ ba và xác thực JWT: chờ hướng dẫn buổi 10
+- Ghi chú: các lệnh `npm run migrate`, `npm run seed` và `npm start` mới được kiểm chứng ở mức SQL và mức nghiệp vụ; chạy đầy đủ trên máy sinh viên chưa thực hiện. Trang `web/` đã được thử trong trình duyệt với máy chủ giả, chưa thử với CSDL thật.
