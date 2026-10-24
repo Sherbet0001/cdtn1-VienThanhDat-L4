@@ -1,0 +1,36 @@
+:root { --chu: #1a1a1a; --nen: #fff; --vien: #d9dde3; --nhat: #f3f4f6; --chinh: #1d4ed8; --loi: #b91c1c; --tot: #15803d; }
+@media (prefers-color-scheme: dark) {
+  :root { --chu: #e8e8e8; --nen: #14161a; --vien: #2e333b; --nhat: #1d2026; --chinh: #6ea0ff; --loi: #ff8a8a; --tot: #6fd28f; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: var(--chu); background: var(--nen); line-height: 1.5; }
+header { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--vien); }
+nav { display: flex; gap: 1rem; }
+nav a { color: var(--chu); text-decoration: none; padding: .25rem 0; border-bottom: 2px solid transparent; }
+nav a.dang-chon { border-bottom-color: var(--chinh); font-weight: 600; }
+main { max-width: 64rem; margin: 0 auto; padding: 1rem; }
+h1 { font-size: 1.4rem; margin: .5rem 0; }
+h2 { font-size: 1.1rem; margin-top: 1.5rem; }
+a { color: var(--chinh); }
+table { width: 100%; border-collapse: collapse; margin: .75rem 0; }
+th, td { text-align: left; padding: .5rem; border-bottom: 1px solid var(--vien); }
+.table-wrap { overflow-x: auto; }
+label { display: inline-block; margin: .25rem 0; }
+input, select, button, textarea { font: inherit; }
+input[type=text], input:not([type]), select, textarea { padding: .4rem; border: 1px solid var(--vien); border-radius: .35rem; background: var(--nen); color: var(--chu); }
+button { padding: .45rem .9rem; border: 1px solid var(--chinh); border-radius: .35rem; background: var(--chinh); color: #fff; cursor: pointer; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.trang-thai { padding: 1rem; background: var(--nhat); border-radius: .5rem; }
+.trang-thai.loi, .thong-bao.loi { color: var(--loi); }
+.thong-bao { padding: .6rem .9rem; border-radius: .5rem; border: 1px solid var(--vien); }
+.thong-bao.thanh-cong { color: var(--tot); }
+.qua-han { color: var(--loi); font-weight: 600; }
+.uu-tien.cao { font-weight: 700; }
+.chi-tiet { display: grid; grid-template-columns: 10rem 1fr; gap: .25rem .75rem; }
+.chi-tiet dt { color: #6b7280; }
+.chi-tiet dd { margin: 0; }
+.phan-trang { display: flex; gap: .5rem; align-items: center; }
+.truong { margin: .6rem 0; }
+.truong label { display: block; font-weight: 600; }
+.loi-truong { color: var(--loi); font-size: .9rem; margin: .15rem 0 0; }
+@media (max-width: 40rem) { .chi-tiet { grid-template-columns: 1fr; } table { font-size: .9rem; } }

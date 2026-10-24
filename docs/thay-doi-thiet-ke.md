@@ -204,8 +204,8 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Nguồn:** tài liệu tự học buổi 9 (track SE) yêu cầu giao diện React hoặc Vue gọi API qua lớp client riêng, có ba trạng thái; ERD và kiến trúc BT1 không có thư mục giao diện riêng.
 - **Quyết định:** TẠM THỜI. Một màn hình (`web/`) viết bằng HTML + ES module, Express phục vụ như tệp tĩnh. Giữ đúng các quy tắc của tài liệu: lớp client riêng (`web/api/client.mjs`), logic ba trạng thái tách riêng và có test, không có `fetch` ngoài lớp client.
 - **Lý do:** Chưa có hướng dẫn chọn React hay Vue của giảng viên; trang thuần không cần bước build nên không thêm phụ thuộc và không đổi cách chạy ở README. Lớp client và logic trạng thái chuyển sang component React/Vue gần như nguyên vẹn.
-- **Ảnh hưởng:** `web/`, `src/app.js` (thêm `express.static`), `tests/web.datastate.test.js`.
-- **Trạng thái:** Một màn hình, đã thử trong trình duyệt với máy chủ giả; chưa thử với PostgreSQL thật. Yêu cầu ≥ 3 màn hình và xác thực (TD-18) làm ở buổi 10 theo hướng dẫn.
+- **Ảnh hưởng:** `web/` (cấu trúc `web/src/{api,components,pages,lib}`, tệp ES module `.js` với `web/package.json` đặt `"type": "module"`), `src/app.js` (thêm `express.static`), `tests/web.test.js`.
+- **Trạng thái:** Buổi 9 có một màn hình; buổi 10 mở rộng thành ba màn hình (xem TD-24). Đề buổi 10 xác nhận React/Vue chỉ là gợi ý nên giữ cách này.
 
 ## 7. Thay đổi khi làm buổi 10 (24/10/2026)
 
@@ -232,6 +232,14 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Lý do:** Tách rõ phần nghiệp vụ khỏi cơ chế xác thực để phân công kiểm thử được trước.
 - **Ảnh hưởng:** `src/routes/ticket.routes.js` (hàm `assign`), `src/services/ticket.service.js`.
 - **Trạng thái:** Đã viết và kiểm thử. Đã chạy khóa dòng `FOR UPDATE` trên PostgreSQL 16 với hai phiên song song: phiên thứ hai đợi, rồi thấy phiếu `DA_PHAN_CONG` nên bị từ chối (409), log chỉ có một dòng. Test đồng thời qua HTTP (TC-11) vẫn chưa làm (TD-08).
+
+### TD-24 — Giao diện bố trí theo `web/src`, màn hình 1–2 của luồng phân công
+
+- **Nguồn:** đề buổi 10 yêu cầu lớp client `src/api/client.js`, tệp `*.api.js` cho nghiệp vụ phiếu, ba màn hình bọc bằng thành phần DataState.
+- **Quyết định:** Đặt toàn bộ ở `web/src/` đúng tên đề yêu cầu: `api/client.js`, `api/tickets.api.js`, `api/technicians.api.js`, `components/DataState.js`, ba trang `pages/` (danh sách phiếu chưa phân công, chi tiết và phân công, kỹ thuật viên); màn tiếp nhận làm ở checkpoint sau. Định tuyến bằng `#hash` nên không cần máy chủ cấu hình thêm. Danh sách kỹ thuật viên nay có phân trang.
+- **Lý do:** Giữ cách không cần bước build (TD-20) nhưng vẫn khớp tên và cấu trúc đề nêu; phép thử "không có `fetch(` ngoài lớp client" được kiểm bằng test.
+- **Ảnh hưởng:** `web/`, `tests/web.test.js`.
+- **Trạng thái:** Đã thử trong trình duyệt với máy chủ giả dùng đúng handler, service, repository và hợp đồng của dự án (đủ các trạng thái: có dữ liệu, rỗng, lỗi có nút Thử lại; phân công thành công; xung đột 409 tải lại và hiện người phụ trách). Chưa thử với PostgreSQL thật trong sandbox vì không cài được gói npm.
 
 ## 8. Điểm còn mở
 
