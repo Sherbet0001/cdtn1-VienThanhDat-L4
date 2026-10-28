@@ -22,7 +22,7 @@ Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bả
 | 13 | GET | /api/tickets/{ticketId} | Chi tiết một phiếu | Quản lý | FR2 | US2 | UC3 | BT2 |
 | 14 | POST | /api/tickets | Tiếp nhận phiếu mới (trạng thái MOI) | Quản lý | – | – | – | BT2 |
 
-Các endpoint 8–12 được thêm khi hiện thực BT2 (TD-15, TD-16, TD-19); mô tả ở Mục 2.8. Các endpoint 13–14 thêm ở buổi 10 (TD-22); mô tả ở Mục 2.9.
+Các endpoint 8–12 được thêm khi hiện thực BT2 (TD-15, TD-16, TD-19); mô tả ở Mục 2.8. Các endpoint 13–14 thêm ở buổi 10 (TD-22); mô tả ở Mục 2.9. Các endpoint 15–16 (sửa và hủy phiếu) thêm ở buổi 12 (TD-26); mô tả ở Mục 2.10.
 
 Giá trị enum dùng ASCII không dấu, đối chiếu với tên trong SRS:
 
@@ -307,3 +307,22 @@ POST nhận:
 ### 4. Mô hình dữ liệu
 
 DDL đầy đủ nằm ở `docs/schema.sql`. Chống trùng lịch (BR-L4-02, NFR3) dùng ràng buộc `EXCLUDE USING gist` trên (technician_id, khoảng thời gian); lỗi CSDL 23P01 được ánh xạ sang HTTP 409 `SLOT_CONFLICT`.
+
+#### 2.10 PATCH và DELETE /api/tickets/{id} (buổi 12, TD-26)
+
+**PATCH** sửa phiếu CHƯA phân công. Thân JSON chỉ nhận `device_name`, `issue_category`, `priority` (gửi trường nào sửa trường đó, phải có ít nhất một trường; trường khác như `status` hay `technician_id` bị từ chối 400). Đổi `priority` thì `due_date` tính lại từ `received_at` theo QT-04.
+
+```json
+{ "priority": "CAO" }
+```
+
+**DELETE** hủy phiếu theo kiểu xóa mềm (QT-13): phiếu chuyển sang `DA_HUY`, dòng dữ liệu và lịch sử vẫn còn, và có một dòng `ticket_status_log`. Thân JSON tùy chọn `{ "reason": "Khách đổi ý" }` (tối đa 255 ký tự, mặc định "Hủy theo yêu cầu"). Chỉ hủy được phiếu `MOI` hoặc `DA_PHAN_CONG`.
+
+Cả hai trả về phiếu sau khi thay đổi (hình dạng như Mục 2.9).
+
+| Mã | Khi nào |
+| --- | --- |
+| 200 | Thành công |
+| 400 | VALIDATION_ERROR (thân rỗng, trường lạ, giá trị ngoài danh sách, mã phiếu không phải số) |
+| 404 | TICKET_NOT_FOUND |
+| 409 | TICKET_NOT_EDITABLE (PATCH khi phiếu không còn `MOI`) hoặc TICKET_NOT_CANCELLABLE (DELETE khi phiếu đang xử lý, đã hoàn tất hoặc đã hủy); `details.status` cho biết trạng thái hiện tại |

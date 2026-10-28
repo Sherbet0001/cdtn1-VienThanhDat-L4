@@ -90,6 +90,51 @@ class TicketService {
       return { ticketId, ticketCode: phieu.ticketCode, status: 'DA_PHAN_CONG', technicianId, assignedAt, assignedBy: nguoiThucHien };
     });
   }
+
+  /**
+   * Sửa thông tin phiếu CHƯA phân công (UC2 mở rộng). Đổi mức ưu tiên thì hạn cam kết tính lại từ thời điểm tiếp nhận (QT-04).
+   * @param {number} ticketId
+   * @param {{deviceName?:string, issueCategory?:string, priority?:string}} thayDoi Đã qua validateTicketUpdate.
+   * @returns {Promise<object>} Phiếu sau khi sửa.
+   * @throws {AppError} TICKET_NOT_FOUND (404); TICKET_NOT_EDITABLE (409) khi phiếu không còn ở trạng thái MOI.
+   */
+  async update(ticketId, thayDoi) {
+    await this.repo.runInTransaction(async (tx) => {
+      const phieu = await tx.lockById(ticketId);
+      if (!phieu) throw new AppError('TICKET_NOT_FOUND', `Không tìm thấy phiếu có mã ${ticketId}.`, undefined, 'ticket_id');
+      if (phieu.status !== 'MOI') {
+        throw new AppError('TICKET_NOT_EDITABLE',
+          'Chỉ sửa được phiếu ở trạng thái Mới; phiếu này đã được xử lý tiếp.', { status: phieu.status }, 'ticket_id');
+      }
+      const dueDate = thayDoi.priority && thayDoi.priority !== phieu.priority
+        ? hanCamKet(new Date(phieu.receivedAt), thayDoi.priority) : undefined;
+      await tx.updateFields(ticketId, { ...thayDoi, dueDate });
+    });
+    return this.get(ticketId);
+  }
+
+  /**
+   * Hủy phiếu (xóa mềm, QT-13): chuyển sang DA_HUY và ghi ticket_status_log (QT-06) trong cùng giao dịch.
+   * Chỉ hủy được phiếu MOI hoặc DA_PHAN_CONG (chưa bắt đầu xử lý).
+   * @param {number} ticketId
+   * @param {string} lyDo Lý do hủy, đã qua validateCancel.
+   * @param {number} [nguoiThucHien] 0 khi chưa có đăng nhập (TD-23).
+   * @throws {AppError} TICKET_NOT_FOUND (404); TICKET_NOT_CANCELLABLE (409).
+   */
+  async cancel(ticketId, lyDo, nguoiThucHien = 0) {
+    await this.repo.runInTransaction(async (tx) => {
+      const phieu = await tx.lockById(ticketId);
+      if (!phieu) throw new AppError('TICKET_NOT_FOUND', `Không tìm thấy phiếu có mã ${ticketId}.`, undefined, 'ticket_id');
+      if (!['MOI', 'DA_PHAN_CONG'].includes(phieu.status)) {
+        throw new AppError('TICKET_NOT_CANCELLABLE',
+          'Chỉ hủy được phiếu ở trạng thái Mới hoặc Đã phân công.', { status: phieu.status }, 'ticket_id');
+      }
+      await tx.setStatus(ticketId, 'DA_HUY');
+      await tx.insertLog({ ticketId, oldStatus: phieu.status, newStatus: 'DA_HUY', oldTechnicianId: phieu.technicianId,
+        newTechnicianId: phieu.technicianId, reason: lyDo, changedBy: nguoiThucHien });
+    });
+    return this.get(ticketId);
+  }
 }
 
 module.exports = { TicketService };

@@ -134,6 +134,24 @@ TicketRepository.prototype.setAssignment = async function setAssignment(ticketId
   return rows[0].luc;
 };
 
+/**
+ * Cập nhật các trường được gửi (trường undefined giữ nguyên). Chỉ gọi bên trong runInTransaction.
+ * @param {number} id
+ * @param {{deviceName?:string, issueCategory?:string, priority?:string, dueDate?:Date}} c
+ */
+TicketRepository.prototype.updateFields = async function updateFields(id, c) {
+  await this.db.query(
+    `UPDATE ticket SET device_name = COALESCE($2, device_name), issue_category = COALESCE($3, issue_category),
+                       priority = COALESCE($4, priority), due_date = COALESCE($5, due_date)
+      WHERE ticket_id = $1`,
+    [id, c.deviceName ?? null, c.issueCategory ?? null, c.priority ?? null, c.dueDate ?? null]);
+};
+
+/** Đổi trạng thái phiếu (giữ nguyên kỹ thuật viên). Chỉ gọi bên trong runInTransaction. */
+TicketRepository.prototype.setStatus = async function setStatus(id, status) {
+  await this.db.query(`UPDATE ticket SET status = $2 WHERE ticket_id = $1`, [id, status]);
+};
+
 /** Ghi một dòng ticket_status_log (QT-06: mọi lần chuyển trạng thái phải có log). */
 TicketRepository.prototype.insertLog = async function insertLog(l) {
   await this.db.query(

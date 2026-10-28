@@ -114,4 +114,54 @@ function validateAssignment(body) {
   return body.technician_id;
 }
 
-module.exports = { validateTicketCreate, validateUnassignedQuery, validateAssignment, CATEGORIES, PRIORITIES };
+/**
+ * Kiểm tra thân PATCH /api/tickets/{id} (sửa phiếu chưa phân công). Chỉ được sửa device_name, issue_category, priority;
+ * phải có ít nhất một trường; trường lạ (ví dụ status, technician_id) bị từ chối thay vì âm thầm bỏ qua.
+ * @param {unknown} body
+ * @returns {{deviceName?:string, issueCategory?:string, priority?:string}} chỉ chứa trường được gửi.
+ * @throws {ValidationError} fields liệt kê MỌI trường sai.
+ */
+function validateTicketUpdate(body) {
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return nem([{ field: 'body', reason: 'phải là một đối tượng JSON' }]);
+  }
+  const loi = [];
+  const kq = {};
+  const choPhep = ['device_name', 'issue_category', 'priority'];
+  for (const k of Object.keys(body)) {
+    if (!choPhep.includes(k)) loi.push({ field: k, reason: 'không được sửa trường này' });
+  }
+  if (body.device_name !== undefined) {
+    const t = chuoi(body, 'device_name', 100, loi);
+    if (t) kq.deviceName = t;
+  }
+  if (body.issue_category !== undefined) {
+    if (!CATEGORIES.includes(body.issue_category)) loi.push({ field: 'issue_category', reason: `phải là một trong ${CATEGORIES.join(', ')}` });
+    else kq.issueCategory = body.issue_category;
+  }
+  if (body.priority !== undefined) {
+    if (!PRIORITIES.includes(body.priority)) loi.push({ field: 'priority', reason: `phải là một trong ${PRIORITIES.join(', ')}` });
+    else kq.priority = body.priority;
+  }
+  if (loi.length === 0 && Object.keys(kq).length === 0) loi.push({ field: 'body', reason: 'cần ít nhất một trường để sửa' });
+  if (loi.length > 0) nem(loi);
+  return kq;
+}
+
+/**
+ * Kiểm tra thân DELETE /api/tickets/{id} (hủy phiếu): reason là tùy chọn, tối đa 255 ký tự.
+ * @param {unknown} body Có thể là undefined hoặc {}.
+ * @returns {string} Lý do hủy (mặc định "Hủy theo yêu cầu").
+ */
+function validateCancel(body) {
+  const MAC_DINH = 'Hủy theo yêu cầu';
+  if (body === undefined || body === null) return MAC_DINH;
+  if (typeof body !== 'object' || Array.isArray(body)) return nem([{ field: 'body', reason: 'phải là một đối tượng JSON' }]);
+  if (body.reason === undefined || body.reason === null) return MAC_DINH;
+  if (typeof body.reason !== 'string') return nem([{ field: 'reason', reason: 'phải là chuỗi' }]);
+  const t = body.reason.trim();
+  if (t.length > 255) return nem([{ field: 'reason', reason: 'tối đa 255 ký tự' }]);
+  return t || MAC_DINH;
+}
+
+module.exports = { validateTicketUpdate, validateCancel, validateTicketCreate, validateUnassignedQuery, validateAssignment, CATEGORIES, PRIORITIES };

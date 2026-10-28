@@ -251,9 +251,18 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Không làm:** thư viện pino (logger tự viết đủ dùng cho prototype); script `db:migrate`/runner vẫn dùng `console` vì là công cụ dòng lệnh in kết quả cho người chạy, không phải log máy chủ.
 - **Trạng thái:** Đã viết, 11 test mới (tổng 94) PASS.
 
+### TD-26 — Thực thể Ticket đủ CRUD: sửa (PATCH) và hủy mềm (DELETE) (buổi 12)
+
+- **Nguồn:** bảng chấm BT2 mục S1 yêu cầu đủ CRUD cho ít nhất hai thực thể; Technician đã đủ, Ticket mới có tạo và đọc.
+- **Quyết định:** Thêm `PATCH /api/tickets/{id}` (chỉ sửa `device_name`, `issue_category`, `priority`, và chỉ khi phiếu còn `MOI`; đổi mức ưu tiên thì tính lại hạn cam kết) và `DELETE /api/tickets/{id}` (xóa mềm: chuyển `DA_HUY`, ghi `ticket_status_log`, chỉ cho phiếu `MOI` hoặc `DA_PHAN_CONG`). Hai mã lỗi mới: `TICKET_NOT_EDITABLE`, `TICKET_NOT_CANCELLABLE` (409).
+- **Lý do:** Không xóa vật lý để giữ lịch sử (QT-13); khóa dòng `FOR UPDATE` như khi phân công để hai thao tác cùng lúc không ghi đè nhau (QT-07); không cho sửa khách hàng hay trạng thái bằng PATCH vì trạng thái chỉ đổi qua các luồng nghiệp vụ có log (QT-06).
+- **Ảnh hưởng:** `src/validators/ticket.validator.js`, `src/services/ticket.service.js`, `src/repositories/ticket.repository.js`, `src/routes/ticket.routes.js`, `src/routes/http.js`, `docs/api-contract.md` (Mục 2.10).
+- **Không làm:** màn hình giao diện cho sửa và hủy (không bắt buộc cho S1; ba màn hình hiện có đã đủ S4); hủy phiếu đã `DANG_XU_LY` trở đi (cần quy tắc hoàn tác riêng, chờ hướng dẫn).
+- **Trạng thái:** Đã viết, 10 test mới (tổng 107) PASS; ba câu SQL mới đã chạy thử trên PostgreSQL 16 (`COALESCE` với tham số NULL, đổi trạng thái `DA_HUY`, ghi log), có ROLLBACK sau khi thử.
+
 ## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
 3. Test đồng thời TC-11 chưa làm (TD-08).
-4. Giao diện mới có một màn hình (TD-20); thực thể CRUD thứ hai (đề BT2 yêu cầu từ hai thực thể) chưa làm; chờ hướng dẫn của giảng viên cho các buổi sau.
+4. Giao diện mới có một màn hình (TD-20); chờ hướng dẫn của giảng viên cho các buổi sau.

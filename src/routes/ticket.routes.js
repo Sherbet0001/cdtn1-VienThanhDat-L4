@@ -1,7 +1,7 @@
 'use strict';
 /** Lớp routes của phiếu: dịch giữa HTTP và nghiệp vụ. Hình dạng dữ liệu do src/contracts/ticket.contract.js quyết định. */
 const {
-  validateTicketCreate, validateUnassignedQuery, validateAssignment,
+  validateTicketCreate, validateUnassignedQuery, validateAssignment, validateTicketUpdate, validateCancel,
 } = require('../validators/ticket.validator');
 const { validateId } = require('../validators/technician.validator');
 const { toTicketView, toEligibleView, toAssignmentView } = require('../contracts/ticket.contract');
@@ -20,6 +20,16 @@ function makeHandlers(service) {
     create: boc(async (req, res) => {
       const t = await service.create(validateTicketCreate(req.body));
       res.status(201).location(`/api/tickets/${t.ticketId}`).json(toTicketView(t));
+    }),
+    update: boc(async (req, res) => {
+      const id = validateId(req.params.id);
+      res.json(toTicketView(await service.update(id, validateTicketUpdate(req.body))));
+    }),
+    // Xóa mềm: phiếu chuyển sang DA_HUY, dòng dữ liệu và lịch sử vẫn còn (QT-13).
+    remove: boc(async (req, res) => {
+      const id = validateId(req.params.id);
+      const lyDo = validateCancel(req.body);
+      res.json(toTicketView(await service.cancel(id, lyDo, req.user ? req.user.id : 0)));
     }),
     eligible: boc(async (req, res) => {
       const { phieu, ktvs } = await service.listEligible(validateId(req.params.id));
@@ -42,6 +52,8 @@ function ticketRoutes(service) {
   r.get('/unassigned', h.unassigned);   // đặt TRƯỚC /:id để "unassigned" không bị hiểu là mã phiếu
   r.get('/:id', h.get);
   r.post('/', h.create);
+  r.patch('/:id', h.update);
+  r.delete('/:id', h.remove);
   r.get('/:id/eligible-technicians', h.eligible);
   r.post('/:id/assignment', h.assign);
   return r;

@@ -9,6 +9,8 @@ const HTTP_THEO_MA = Object.freeze({
   TICKET_NOT_FOUND: 404,
   TECHNICIAN_HAS_OPEN_TICKETS: 409,   // xung đột với trạng thái hiện tại của dữ liệu
   TICKET_ALREADY_ASSIGNED: 409,       // phiếu đã có người hoặc không còn MOI (QT-06, QT-07)
+  TICKET_NOT_EDITABLE: 409,           // chỉ sửa được phiếu MOI
+  TICKET_NOT_CANCELLABLE: 409,        // chỉ hủy được phiếu MOI hoặc DA_PHAN_CONG
   TECH_NOT_ELIGIBLE: 400,             // vi phạm QT-08: dữ liệu chọn sai, theo hợp đồng API mục 2.3
 });
 

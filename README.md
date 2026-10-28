@@ -112,10 +112,10 @@ docs/                tài liệu thiết kế
 - [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors, contracts)
 - [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; seed 38 KTV, 159 kỹ năng, 1.063 khách, 1.098 phiếu; chạy lại không nhân đôi (`docs/bang-chung-chay-thuc-te.md`)
 - [x] Thực thể 1, Technician: CRUD qua ba lớp (xóa mềm), quy tắc "KTV đang giữ phiếu thì không được ngừng hoạt động"
-- [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận; quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
+- [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận, sửa (`PATCH`) và hủy mềm (`DELETE`, TD-26); quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
-- [x] 97 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
+- [x] 107 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [x] Buổi 11: khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
