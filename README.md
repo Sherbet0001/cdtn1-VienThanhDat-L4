@@ -12,7 +12,7 @@ Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ th
 
 ## 2. Yêu cầu môi trường
 
-- **Node.js 20.6 trở lên** và npm (đã thử với Node 22 và Node 26). Cần từ 20.6 vì lệnh khởi động dùng `node --env-file`.
+- **Node.js 20 LTS (tối thiểu 20.6)** và npm (đã thử với Node 22 và Node 26); tệp `.nvmrc` ghi bản 20 (`nvm use`). Cần từ 20.6 vì lệnh khởi động dùng `node --env-file`.
 - **PostgreSQL 13 trở lên** (đã thử với PostgreSQL 16). Từ bản 13, extension `btree_gist` là "trusted" nên chủ sở hữu CSDL tạo được mà không cần quyền siêu người dùng.
 - Công cụ dòng lệnh `psql` (đi kèm PostgreSQL) để tạo người dùng và CSDL lần đầu.
 - `curl.exe` để gọi thử API (có sẵn trên Windows 10 trở lên). Trên Windows hãy gõ `curl.exe`, không gõ `curl`, vì `curl` trong PowerShell là lệnh khác.
@@ -25,7 +25,7 @@ Chạy từ thư mục gốc repository trong PowerShell. Mỗi bước là mộ
 1. Tạo người dùng CSDL (khớp `DATABASE_URL` mẫu): `psql -U postgres -c "CREATE USER l4_user WITH PASSWORD 'change_me';"`
 2. Tạo CSDL trống: `psql -U postgres -c "CREATE DATABASE l4_dev OWNER l4_user;"`
 3. Sao chép cấu hình mẫu: `Copy-Item .env.example .env`
-4. Cài thư viện: `npm install`
+4. Cài đúng phiên bản đã khoá trong `package-lock.json`: `npm ci`
 5. Dựng bảng (migration): `npm run migrate`
 6. Nạp dữ liệu mẫu: `npm run seed`
 7. Khởi động máy chủ (giữ cửa sổ này mở): `npm start`
