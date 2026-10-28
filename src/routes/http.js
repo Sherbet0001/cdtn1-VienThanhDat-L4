@@ -27,7 +27,9 @@ const boc = (fn) => async (req, res, next) => {
     await fn(req, res);
   } catch (e) {
     const ma = e && e.code && HTTP_THEO_MA[e.code];
-    if (!ma) return next(e);
+    if (!ma) return next(e);   // lỗi hệ thống: để bộ xử lý lỗi cuối ghi ERROR (đúng một lần)
+    // Lỗi nghiệp vụ là chuyện bình thường: INFO, chỉ ghi mã và trường sai, không ghi giá trị người dùng nhập.
+    if (req.logger) req.logger.info('yêu cầu bị từ chối theo quy tắc nghiệp vụ', { requestId: req.requestId, ma_loi: e.code, field: e.field });
     return res.status(ma).json(loiJson(e));
   }
 };

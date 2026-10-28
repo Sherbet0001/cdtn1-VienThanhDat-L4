@@ -46,8 +46,9 @@ Từ phiên bản 1.2 (TD-19), khung lỗi có thêm hai thành phần TÙY CH�
 | field | Lỗi gắn với một trường | Trường sai đầu tiên |
 | fields | VALIDATION_ERROR | Mảng `{ field, reason }` liệt kê MỌI trường sai, để giao diện tô đỏ cùng lúc |
 | details | Lỗi nghiệp vụ cần số liệu kèm theo | Ví dụ `{ "so_phieu": 2 }` khi TECHNICIAN_HAS_OPEN_TICKETS |
+| requestId | Lỗi 5xx | Mã tra cứu để người dùng báo lại; kỹ sư tìm đúng dòng log theo mã này |
 
-Quy ước mã HTTP: dữ liệu vào sai → 400; không tìm thấy → 404; xung đột trạng thái dữ liệu → 409; lỗi hệ thống → 500 `INTERNAL_ERROR` (không bao giờ trả chi tiết kỹ thuật, tên bảng hay câu SQL). Lỗi của người dùng KHÔNG BAO GIỜ trả 500.
+Quy ước mã HTTP: dữ liệu vào sai → 400; không tìm thấy → 404; xung đột trạng thái dữ liệu → 409; lỗi hệ thống → 500 `INTERNAL_ERROR`; mất kết nối cơ sở dữ liệu → 503 `SERVICE_UNAVAILABLE` (không bao giờ trả chi tiết kỹ thuật, tên bảng hay câu SQL). Lỗi 5xx có thêm `error.requestId` và `message` ghi "Mã tra cứu: …" (cùng mã trong header `X-Request-Id` và trong log của máy chủ). Lỗi của người dùng KHÔNG BAO GIỜ trả 500.
 
 ### 2. Chi tiết từng endpoint
 

@@ -55,6 +55,7 @@ function ganRequestId(logger) {
     const co = req.headers['x-request-id'];
     req.requestId = typeof co === 'string' && /^[\w-]{1,64}$/.test(co) ? co : randomUUID();
     res.setHeader('X-Request-Id', req.requestId);
+    req.logger = logger;   // để lớp routes ghi log lỗi nghiệp vụ mà không phải import logger
     const t0 = Date.now();
     res.on('finish', () => {
       logger.info('yêu cầu hoàn tất', { requestId: req.requestId, phuong_thuc: req.method,

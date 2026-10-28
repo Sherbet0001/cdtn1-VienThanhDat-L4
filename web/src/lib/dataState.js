@@ -14,7 +14,7 @@ export function layTrangThai({ loading, error, data }, laRong = (d) => !d || (Ar
 
 /**
  * Thông báo lỗi cho người dùng: chuyện gì · vì sao · làm gì tiếp. KHÔNG lộ mã kỹ thuật, tên bảng hay câu SQL.
- * @param {{status?:number, message?:string, network?:boolean}|null} err Lỗi đã chuẩn hóa bởi lớp client (ApiError).
+ * @param {{status?:number, message?:string, network?:boolean, requestId?:string}|null} err Lỗi đã chuẩn hóa bởi lớp client (ApiError).
  * @returns {{tieuDe:string, chiTiet:string}}
  */
 export function thongBaoLoi(err) {
@@ -24,5 +24,6 @@ export function thongBaoLoi(err) {
   if (err.status >= 400 && err.status < 500) {
     return { tieuDe: 'Yêu cầu chưa hợp lệ.', chiTiet: err.message || 'Hãy kiểm tra lại thông tin rồi thử lại.' };
   }
-  return { tieuDe: 'Hệ thống đang gặp sự cố.', chiTiet: 'Vui lòng thử lại sau ít phút.' };
+  const maTraCuu = err.requestId ? ` Mã tra cứu: ${err.requestId}.` : '';
+  return { tieuDe: 'Hệ thống đang gặp sự cố.', chiTiet: `Vui lòng thử lại sau ít phút.${maTraCuu}` };
 }

@@ -242,6 +242,15 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Không làm:** đăng nhập và xử lý 401 (TD-18 vẫn mở): nằm trong phần được phép cắt của đề buổi 10, ưu tiên giữ luồng chính, ba trạng thái, test và README. Màn tiếp nhận là biểu mẫu nên không có trạng thái "rỗng"; nó xử lý lỗi theo từng trường và lỗi mạng (giữ nguyên dữ liệu đã nhập). Ba trạng thái áp dụng cho hai màn có danh sách và màn chi tiết.
 - **Trạng thái:** Đã thử trong trình duyệt với máy chủ giả dùng đúng handler, service, repository và hợp đồng của dự án (đủ các trạng thái: có dữ liệu, rỗng, lỗi có nút Thử lại; phân công thành công; xung đột 409 tải lại và hiện người phụ trách). Chưa thử với PostgreSQL thật trong sandbox vì không cài được gói npm.
 
+### TD-25 — Logging có cấu trúc, mã tra cứu và lỗi hệ thống 503 (buổi 11)
+
+- **Nguồn:** bài giảng buổi 11 (bốn mức log, ba thứ mọi dòng log phải có, thứ không được ghi, lỗi xuyên lớp); hợp đồng API v1.2 chỉ có 500 `INTERNAL_ERROR`.
+- **Quyết định:** Tự viết `src/logger.js` (không thêm thư viện, tránh thêm phụ thuộc): một dòng JSON ra stdout, có thời điểm +07:00, mức (`LOG_LEVEL`), `requestId`; trường `phone`, `password`, `token`, `authorization`, `database_url`... bị che thành `***`. Lỗi nghiệp vụ ghi INFO ở `routes/http.js` (chỉ mã lỗi và tên trường); lỗi hệ thống ghi ERROR đúng một lần ở `src/middleware/xuLyLoi.js`, trả `error.requestId` + câu "Mã tra cứu". Mất kết nối CSDL trả 503 `SERVICE_UNAVAILABLE` thay vì 500.
+- **Lý do:** Một sự cố chỉ một dòng ERROR; người dùng báo mã tra cứu thì tìm được đúng dòng log; không lộ SQL hay ngăn xếp; log không chứa số điện thoại khách (QT-15).
+- **Ảnh hưởng:** `src/logger.js`, `src/middleware/xuLyLoi.js`, `src/app.js`, `src/routes/http.js`, `web/src/api/client.js`, `web/src/lib/dataState.js`, `docs/api-contract.md` (mục khung lỗi), `.env.example` (`LOG_LEVEL`).
+- **Không làm:** thư viện pino (logger tự viết đủ dùng cho prototype); script `db:migrate`/runner vẫn dùng `console` vì là công cụ dòng lệnh in kết quả cho người chạy, không phải log máy chủ.
+- **Trạng thái:** Đã viết, 11 test mới (tổng 94) PASS.
+
 ## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.

@@ -4,13 +4,14 @@ const BASE = (typeof window !== 'undefined' && window.API_BASE_URL) || '';
 
 /** Lỗi gọi API đã chuẩn hóa theo khung lỗi { error: { code, message, field, fields } }. network=true khi không tới được máy chủ. */
 export class ApiError extends Error {
-  constructor({ status = 0, code = 'NETWORK_ERROR', message, field, fields = [], details, network = false }) {
+  constructor({ status = 0, code = 'NETWORK_ERROR', message, field, fields = [], details, requestId, network = false }) {
     super(message);
     this.status = status;
     this.code = code;
     this.field = field;
     this.fields = fields;
     this.details = details;
+    this.requestId = requestId;   // mã tra cứu của lỗi 5xx, để người dùng báo lại
     this.network = network;
   }
 }
@@ -40,7 +41,8 @@ export async function goi(path, { method = 'GET', body } = {}) {
   if (!res.ok) {
     if (res.status === 401) khiChuaDangNhap();
     const e = (noiDung && noiDung.error) || {};
-    throw new ApiError({ status: res.status, code: e.code || 'HTTP_ERROR', message: e.message, field: e.field, fields: e.fields, details: e.details });
+    throw new ApiError({ status: res.status, code: e.code || 'HTTP_ERROR', message: e.message, field: e.field, fields: e.fields, details: e.details,
+      requestId: e.requestId || res.headers?.get?.('X-Request-Id') || undefined });
   }
   return noiDung;
 }
