@@ -1,0 +1,21 @@
+flowchart TB
+  subgraph TRINH_DUYET["Trình duyệt (web/ — HTML + ES modules, không build)"]
+    P["pages/: ticketList · ticketDetail · intake · technicians"]
+    D["components/DataState: loading · empty · error + Thử lại"]
+    C["api/client.js: nơi DUY NHẤT gọi fetch, chuẩn hóa ApiError"]
+    P --> D --> C
+  end
+  subgraph MAY_CHU["Máy chủ Node.js 20 + Express (src/)"]
+    M1["logger.js — ganRequestId: X-Request-Id, log JSON ra stdout"]
+    R["routes/ — HTTP ⇄ nghiệp vụ, http.js đổi mã lỗi → mã HTTP"]
+    V["validators/ + contracts/ — kiểm đầu vào, đổi dạng đầu ra"]
+    S["services/ — quy tắc QT-xx, KHÔNG biết HTTP"]
+    RE["repositories/ — SQL, giao dịch, khóa dòng"]
+    E["middleware/xuLyLoi.js — log ERROR một lần, 500/503 + mã tra cứu"]
+    M1 --> R --> V --> S --> RE
+    R -. lỗi lạ .-> E
+  end
+  DB[("PostgreSQL 16\nmigrations/ + seeds/")]
+  C -- "JSON qua HTTP /api/*" --> M1
+  RE -- "pg (Pool)" --> DB
+  MAY_CHU -. "express.static(web/)" .-> TRINH_DUYET
