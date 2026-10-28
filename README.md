@@ -103,6 +103,7 @@ docs/                tài liệu thiết kế
 | `api-contract.md` | Hợp đồng API |
 | `thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế (TD-01 trở đi) |
 | `bang-chung-chay-thuc-te.md` | Kết quả chạy thật: migrate, seed, curl, giao diện |
+| `bang-chung-luong-chinh.md`, `anh/` | Ảnh chụp luồng chính chạy trên dữ liệu thật |
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
@@ -115,7 +116,8 @@ docs/                tài liệu thiết kế
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
 - [x] 83 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
-- [ ] Ảnh chụp màn hình toàn luồng trong `docs/anh/` và `docs/bang-chung-luong-chinh.md` (sinh viên chụp trên máy)
+- [x] Ảnh chụp danh sách phiếu, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
+- [ ] Ảnh màn chi tiết kèm phân công thành công và kết quả `curl.exe` của luồng phân công (chưa chụp)
 - [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
 - [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
 - Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
