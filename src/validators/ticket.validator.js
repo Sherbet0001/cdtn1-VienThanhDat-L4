@@ -5,6 +5,7 @@ const { chuanHoaSdt } = require('./phone');
 
 const CATEGORIES = Object.freeze(['MAN_HINH', 'PIN', 'SAC', 'PHAN_MEM', 'NUOC_VAO', 'KHAC']);
 const PRIORITIES = Object.freeze(['CAO', 'TRUNG_BINH', 'THAP']);
+const INT_TOI_DA = 2147483647;   // center_id là cột INT của PostgreSQL (BUG-001)
 
 function nem(cacTruong) {
   throw new ValidationError(`Dữ liệu không hợp lệ ở trường: ${cacTruong.map((x) => x.field).join(', ')}.`, cacTruong);
@@ -55,7 +56,7 @@ function validateTicketCreate(body) {
 
   if (body.center_id === undefined || body.center_id === null) {
     loi.push({ field: 'center_id', reason: 'bắt buộc' });
-  } else if (!Number.isInteger(body.center_id) || body.center_id < 1) {
+  } else if (!Number.isInteger(body.center_id) || body.center_id < 1 || body.center_id > INT_TOI_DA) {
     loi.push({ field: 'center_id', reason: 'phải là số nguyên dương' });
   }
 

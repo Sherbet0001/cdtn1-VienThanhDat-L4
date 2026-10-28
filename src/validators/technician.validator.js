@@ -16,7 +16,9 @@ function nem(cacTruong) {
   throw new ValidationError(`Dữ liệu không hợp lệ ở trường: ${ten}.`, cacTruong);
 }
 
-const laSoNguyenDuong = (v) => Number.isInteger(v) && v >= 1;
+/** center_id là cột INT của PostgreSQL: lớn hơn giá trị này thì CSDL báo lỗi, nên phải chặn ngay ở validator (BUG-001). */
+const INT_TOI_DA = 2147483647;
+const laSoNguyenDuong = (v) => Number.isInteger(v) && v >= 1 && v <= INT_TOI_DA;
 
 /**
  * Kiểm tra thân yêu cầu POST (tạo) và PUT (sửa toàn bộ) và đổi sang dạng nghiệp vụ.
