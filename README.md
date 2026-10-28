@@ -107,7 +107,7 @@ docs/                tài liệu thiết kế
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
-## 6. Trạng thái hiện tại (buổi 10)
+## 6. Trạng thái hiện tại (buổi 11)
 
 - [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors, contracts)
 - [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; seed 38 KTV, 159 kỹ năng, 1.063 khách, 1.098 phiếu; chạy lại không nhân đôi (`docs/bang-chung-chay-thuc-te.md`)
@@ -115,9 +115,18 @@ docs/                tài liệu thiết kế
 - [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận; quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
-- [x] 83 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
+- [x] 97 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
+- [x] Buổi 11: khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
+- [ ] Đóng gói Docker (Dockerfile, `docker-compose.yml`): làm ở bước cuối của buổi 11
 - [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
 - [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
 - Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
+
+## 7. Log và xử lý lỗi (buổi 11)
+
+- Máy chủ ghi log dạng JSON, một dòng một sự kiện, ra màn hình (stdout). Đổi mức bằng biến `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) trong `.env`, không cần sửa mã.
+- Mỗi phản hồi có header `X-Request-Id`. Khi giao diện hiện "Mã tra cứu: …", mã đó chính là `requestId` trong dòng log lỗi tương ứng.
+- Log không ghi số điện thoại, mật khẩu, token hay chuỗi kết nối (bị thay bằng `***`).
+- Các lỗi đã gỡ và cách tái lập nằm ở `docs/bug-log.md`.
