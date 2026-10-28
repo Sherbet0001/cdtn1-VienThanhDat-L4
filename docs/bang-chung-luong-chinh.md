@@ -39,7 +39,6 @@ Kết quả `migrate` hai lần, `seed` hai lần, đếm dòng và năm lệnh 
 
 ## 6. Chưa có ảnh
 
-- Thông báo phân công thành công và phiếu chuyển sang "Đã phân công" (sau khi chọn kỹ thuật viên và bấm Xác nhận).
-- Kết quả các lệnh `curl.exe` của luồng phân công (README mục 4: 400 `TECH_NOT_ELIGIBLE`, 201, 409 `TICKET_ALREADY_ASSIGNED`).
+- Thông báo phân công thành công và phiếu chuyển sang "Đã phân công" (sau khi chọn kỹ thuật viên và bấm Xác nhận ở màn chi tiết).
 
-Hai mục này được kiểm thử bằng test tích hợp (`tests/ticket.assign.test.js`) và chạy thử trong trình duyệt với máy chủ giả; cần bổ sung ảnh chụp từ máy sinh viên để hoàn tất minh chứng.
+Bước này được kiểm thử bằng test tích hợp (`tests/ticket.assign.test.js`) và chạy thử trong trình duyệt với máy chủ giả; cần bổ sung ảnh chụp giao diện từ máy sinh viên để hoàn tất minh chứng. Minh chứng của luồng chính dùng ảnh giao diện; các lệnh `curl.exe` ở README mục 4 chỉ để tự kiểm tra, không bắt buộc chụp.
