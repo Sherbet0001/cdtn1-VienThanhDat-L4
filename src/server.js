@@ -1,9 +1,12 @@
 'use strict';
 const { Pool } = require('pg');
 const { buildApp } = require('./app');
+const { taoLogger } = require('./logger');
+
+const logger = taoLogger();
 
 if (!process.env.DATABASE_URL) {
-  console.error('Thiếu biến môi trường DATABASE_URL. Xem .env.example.');
+  logger.error('Thiếu biến môi trường DATABASE_URL. Xem .env.example.');
   process.exit(1);
 }
 
@@ -14,8 +17,8 @@ const pool = new Pool({
 });
 
 const port = Number(process.env.PORT || 3000);
-const server = buildApp(pool).listen(port, () => {
-  console.log(`Máy chủ đang chạy tại http://localhost:${port}`);
+const server = buildApp(pool, { logger }).listen(port, () => {
+  logger.info('máy chủ đã khởi động', { port, url: `http://localhost:${port}` });
 });
 
 // Dọn dẹp khi dừng: đóng cổng và trả kết nối về cơ sở dữ liệu trước khi thoát.

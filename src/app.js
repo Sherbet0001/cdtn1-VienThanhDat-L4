@@ -7,10 +7,12 @@ const technicianRoutes = require('./routes/technician.routes');
 const TicketRepository = require('./repositories/ticket.repository');
 const { TicketService } = require('./services/ticket.service');
 const ticketRoutes = require('./routes/ticket.routes');
+const { taoLogger, ganRequestId } = require('./logger');
 
 /** Ghép các lớp lại với nhau. Nhận pool để kiểm thử được bằng đối tượng giả. */
-function buildApp(pool) {
+function buildApp(pool, { logger = taoLogger() } = {}) {
   const app = express();
+  app.use(ganRequestId(logger));   // đầu tiên: mọi dòng log của một yêu cầu cùng một requestId
   app.use(express.json({ limit: '256kb' }));
 
   app.get('/health', async (_req, res) => {
