@@ -37,8 +37,10 @@ Lọc mặc định "Đang hoạt động": mã 1 và 11 vắng vì đã nghỉ 
 
 Kết quả `migrate` hai lần, `seed` hai lần, đếm dòng và năm lệnh `curl.exe` của module kỹ thuật viên nằm ở `docs/bang-chung-chay-thuc-te.md`.
 
-## 6. Chưa có ảnh
+## 6. Phân công thành công (màn 2, UC3)
 
-- Thông báo phân công thành công và phiếu chuyển sang "Đã phân công" (sau khi chọn kỹ thuật viên và bấm Xác nhận ở màn chi tiết).
+![Phân công thành công phiếu BH-007159/2026](anh/Screenshot%202026-10-28%20131756.png)
 
-Bước này được kiểm thử bằng test tích hợp (`tests/ticket.assign.test.js`) và chạy thử trong trình duyệt với máy chủ giả; cần bổ sung ảnh chụp giao diện từ máy sinh viên để hoàn tất minh chứng. Minh chứng của luồng chính dùng ảnh giao diện; các lệnh `curl.exe` ở README mục 4 chỉ để tự kiểm tra, không bắt buộc chụp.
+- Sau khi chọn kỹ thuật viên và bấm "Xác nhận phân công", màn chi tiết hiện thông báo xanh "Đã phân công phiếu BH-007159/2026 cho kỹ thuật viên mã 33."
+- Trạng thái phiếu chuyển thành "Đã phân công" và dòng "Kỹ thuật viên" hiện Phan Kim Hạnh (mã 33); khung xám bên dưới giải thích phiếu không còn ở trạng thái Mới nên không phân công lại ở đây (QT-07).
+- Việc ghi `ticket_status_log` trong cùng giao dịch được kiểm bằng `tests/ticket.assign.test.js`.

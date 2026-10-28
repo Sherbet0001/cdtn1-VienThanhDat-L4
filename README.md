@@ -117,7 +117,7 @@ docs/                tài liệu thiết kế
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
 - [x] 83 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
-- [ ] Ảnh giao diện thông báo phân công thành công (chưa chụp)
+- [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
 - [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
 - Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
