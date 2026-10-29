@@ -38,7 +38,7 @@ Dự án chỉ dùng hai thư viện chạy: `express` 4.21.2 và `pg` 8.13.1 (g
 
 - Công cụ AI được dùng với vai trò hỗ trợ viết mã, gợi ý và rà soát; sinh viên chịu trách nhiệm kiểm tra, đối chiếu và chỉnh sửa trước khi đưa vào bài nộp.
 - Sinh viên có thể giải thích từng hàm và từng quyết định thiết kế trong các tệp liệt kê ở trên khi giảng viên yêu cầu.
-- Công việc của buổi 12 (tài liệu kiến trúc thực tế, đóng gói, PDF, tag `v0.2`) sẽ được bổ sung vào bảng khi hoàn thành.
+- Công việc của buổi 12 (CRUD Ticket, tài liệu kiến trúc thực tế, Docker, BUG-002, PDF, tag `v0.2`) được liệt kê chi tiết kèm mã commit ở `docs/ai-disclosure-Tuan6.md`.
 
 ---
 
@@ -47,7 +47,7 @@ Dự án chỉ dùng hai thư viện chạy: `express` 4.21.2 và `pg` 8.13.1 (g
 > **“Tôi xác nhận đã đọc, hiểu và kiểm tra toàn bộ nội dung trong gói nộp bài này, chịu trách nhiệm về tính chính xác của nội dung và có thể giải thích mọi quyết định thiết kế khi giảng viên yêu cầu.”**
 
 - **Chữ ký / Họ tên sinh viên:** Viên Thành Đạt
-- **Ngày khai báo:** 28/10/2026
+- **Ngày khai báo:** 29/10/2026
 
 ---
 
