@@ -58,7 +58,9 @@ function ganRequestId(logger) {
     req.logger = logger;   // để lớp routes ghi log lỗi nghiệp vụ mà không phải import logger
     const t0 = Date.now();
     res.on('finish', () => {
-      logger.info('yêu cầu hoàn tất', { requestId: req.requestId, phuong_thuc: req.method,
+      // /health do Docker gọi mỗi 10 giây: ghi ở mức debug để không làm ngập log; lỗi (không phải 2xx) vẫn ghi INFO.
+      const laKiemTraSucKhoe = (req.originalUrl || req.url || '').split('?')[0] === '/health' && res.statusCode < 400;
+      logger[laKiemTraSucKhoe ? 'debug' : 'info']('yêu cầu hoàn tất', { requestId: req.requestId, phuong_thuc: req.method,
         duong_dan: (req.originalUrl || req.url).split('?')[0], ma_trang_thai: res.statusCode, thoi_gian_ms: Date.now() - t0 });
     });
     next();

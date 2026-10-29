@@ -266,7 +266,7 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Quyết định:** `docker-compose.yml` có hai dịch vụ `db` (`postgres:16-alpine`) và `api` (Node 20 Alpine, chạy bằng người dùng không đặc quyền, có `HEALTHCHECK`); không có dịch vụ `web` riêng vì giao diện là tệp tĩnh do chính Express phục vụ (TD-20). `api` chờ `db` ở trạng thái healthy, rồi chạy `migrations` và `seeds` bằng bộ chạy sẵn có (chạy lại được) trước khi khởi động, thay vì dùng `docker-entrypoint-initdb.d`, để cách chạy trong Docker và cách chạy bằng `npm` dùng chung một đường nạp dữ liệu.
 - **Lý do:** Ít thành phần nhất mà vẫn đáp ứng "hai lệnh từ máy chưa cài Node và PostgreSQL"; không mở cổng 5432 để khỏi đụng PostgreSQL cài sẵn trên máy; `pg_isready -h 127.0.0.1` để chỉ báo healthy khi máy chủ thật đã nghe qua TCP.
 - **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitattributes`, `.env.example` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `API_PORT`), `README.md` mục 3.1.
-- **Trạng thái:** Cú pháp `docker-compose.yml` đã kiểm bằng `docker compose config`; chưa dựng được ảnh trong môi trường viết mã (không có Docker daemon), nên phép thử `down -v` rồi `up -d --build` từ thư mục trống do sinh viên chạy trên máy mình.
+- **Trạng thái:** Đã chạy trên máy sinh viên (Docker 28.5.2, Compose v2.40): `docker compose up -d --build` dựng được ảnh, `db` và `api` đều `healthy`, log JSON có `requestId`. Gặp một vấn đề nhỏ: Docker gọi `/health` mỗi 10 giây làm log ngập dòng "yêu cầu hoàn tất" và che mất các dòng khác (`--tail 20` chỉ thấy `/health`); đã sửa ở `src/logger.js`: `/health` thành công ghi ở mức `debug`, `/health` lỗi (4xx, 5xx) vẫn ghi `info`.
 
 ## 8. Điểm còn mở
 

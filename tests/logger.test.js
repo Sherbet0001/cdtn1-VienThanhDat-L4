@@ -64,3 +64,18 @@ test('ganRequestId: gán mã, trả trong header X-Request-Id, log khi hoàn t�
   assert.equal(dong[0].duong_dan, '/api/x');                          // không ghi query string (có thể chứa SĐT)
   assert.ok(!JSON.stringify(dong).includes('0901234567'));
 });
+
+test('ganRequestId: /health thành công chỉ ghi ở mức debug (không ngập log), /health lỗi và đường dẫn khác vẫn ghi info', async () => {
+  const http = require('node:http');
+  const { ganRequestId } = require('../src/logger');
+  const { logger, dong } = ghiVao('debug');
+  const mw = ganRequestId(logger);
+  const server = http.createServer((req, res) => mw(req, res, () => { res.statusCode = req.url === '/health?loi' ? 503 : 200; res.end('x'); }));
+  await new Promise((r) => server.listen(0, r));
+  const goi = async (p) => (await fetch(`http://localhost:${server.address().port}${p}`)).text();
+  await goi('/health'); await goi('/health?loi'); await goi('/api/tickets/unassigned');
+  server.closeAllConnections();
+  await new Promise((res) => server.close(res));
+  assert.deepEqual(dong.map((d) => [d.duong_dan, d.muc]),
+    [['/health', 'debug'], ['/health', 'info'], ['/api/tickets/unassigned', 'info']]);
+});
