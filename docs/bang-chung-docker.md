@@ -13,3 +13,16 @@ Từ ảnh:
 - Mở `http://localhost:3000/` trên máy host, màn hình "Phiếu chưa phân công" hiện 12 phiếu (dữ liệu mẫu đã nạp tự động, hệ thống không lên trống).
 
 Cách làm lại: README mục 3.1. Quyết định thiết kế: TD-27 (`docs/thay-doi-thiet-ke.md`).
+
+## Suy giảm có kiểm soát: tắt cơ sở dữ liệu khi hệ thống đang chạy (C7)
+
+**Trước khi sửa lỗi (BUG-002).** Sau `docker compose stop db` trang không mở được (`ERR_CONNECTION_REFUSED`). Sau khi bật lại DB, `docker compose ps -a` cho thấy `api` đã thoát (`Exited (1)`), log kết thúc bằng thông tin lỗi chưa xử lý của Node.js v20:
+
+![api thoát sau khi DB tắt](anh/bug002-api-exited.png)
+
+**Sau khi sửa.** Với bản sửa (`src/db/pool.js`), chạy lại `docker compose stop db` rồi tải trang: máy chủ vẫn sống, giao diện báo lỗi rõ ràng kèm mã tra cứu và nút Thử lại, không treo, không trắng trang:
+
+![Giao diện báo lỗi khi DB tắt](anh/suy-giam-tat-db.png)
+
+Mã tra cứu trên màn hình là `requestId` của yêu cầu; tìm được đúng dòng log lỗi tương ứng bằng `docker compose logs api`. Chi tiết lỗi ở `docs/bug-log.md` (BUG-002).
+
