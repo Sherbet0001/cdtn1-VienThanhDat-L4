@@ -44,7 +44,7 @@ Thứ tự đăng ký trong `src/app.js`: `ganRequestId` → `express.json` → 
 | Đổi kỹ thuật viên, lịch hẹn (UC6, UC7) | Có | Chưa hiện thực | `docs/thay-doi-thiet-ke.md` mục 8 |
 | Logging và lỗi | Chưa nêu | Log JSON ra stdout có `requestId`; bộ xử lý lỗi duy nhất | TD-25 |
 | Sửa và hủy phiếu | Chưa nêu | `PATCH` và `DELETE` mềm cho phiếu | TD-26 |
-| Container | Docker Compose | Đang bổ sung ở buổi 11–12 (xem README mục 6) | |
+| Container | Docker Compose | Hai dịch vụ `db` và `api` (api cũng phục vụ giao diện, không có dịch vụ web riêng) | TD-27 |
 
 ## 5. Dữ liệu và triển khai
 

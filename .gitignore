@@ -20,3 +20,6 @@ Thumbs.db
 *.bkp
 .$*.drawio.bkp
 *.dtmp
+
+# Gói checkpoint tải về (không commit)
+*.zip

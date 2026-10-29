@@ -1,0 +1,35 @@
+# Chạy: cp .env.example .env  rồi  docker compose up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data      # giữ dữ liệu khi container bị xoá
+    # -h 127.0.0.1: kiểm qua TCP, vì lúc khởi tạo lần đầu máy chủ tạm chỉ nghe qua socket và sẽ khởi động lại
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # Không mở cổng 5432 ra máy chủ: tránh đụng PostgreSQL cài sẵn. Xem dữ liệu bằng:
+    #   docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+  api:
+    build: .
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}   # "db" là tên dịch vụ, không phải localhost
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TZ: ${TZ:-Asia/Ho_Chi_Minh}
+    depends_on:
+      db:
+        condition: service_healthy            # chờ CSDL SẴN SÀNG, không chỉ khởi động
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+volumes:
+  db_data:

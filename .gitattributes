@@ -1,0 +1,3 @@
+# Giữ xuống dòng LF cho tệp chạy trong container (CRLF của Windows làm hỏng .sh)
+*.sh text eol=lf
+Dockerfile text eol=lf

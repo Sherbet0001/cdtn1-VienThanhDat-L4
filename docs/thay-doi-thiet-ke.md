@@ -260,6 +260,14 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Không làm:** màn hình giao diện cho sửa và hủy (không bắt buộc cho S1; ba màn hình hiện có đã đủ S4); hủy phiếu đã `DANG_XU_LY` trở đi (cần quy tắc hoàn tác riêng, chờ hướng dẫn).
 - **Trạng thái:** Đã viết, 10 test mới (tổng 107) PASS; ba câu SQL mới đã chạy thử trên PostgreSQL 16 (`COALESCE` với tham số NULL, đổi trạng thái `DA_HUY`, ghi log), có ROLLBACK sau khi thử.
 
+### TD-27 — Đóng gói Docker với hai dịch vụ db và api (buổi 11–12)
+
+- **Nguồn:** bài giảng và tài liệu tự học buổi 11 (Dockerfile nhiều giai đoạn, compose có healthcheck); đề BT3 yêu cầu chạy bằng không quá hai lệnh.
+- **Quyết định:** `docker-compose.yml` có hai dịch vụ `db` (`postgres:16-alpine`) và `api` (Node 20 Alpine, chạy bằng người dùng không đặc quyền, có `HEALTHCHECK`); không có dịch vụ `web` riêng vì giao diện là tệp tĩnh do chính Express phục vụ (TD-20). `api` chờ `db` ở trạng thái healthy, rồi chạy `migrations` và `seeds` bằng bộ chạy sẵn có (chạy lại được) trước khi khởi động, thay vì dùng `docker-entrypoint-initdb.d`, để cách chạy trong Docker và cách chạy bằng `npm` dùng chung một đường nạp dữ liệu.
+- **Lý do:** Ít thành phần nhất mà vẫn đáp ứng "hai lệnh từ máy chưa cài Node và PostgreSQL"; không mở cổng 5432 để khỏi đụng PostgreSQL cài sẵn trên máy; `pg_isready -h 127.0.0.1` để chỉ báo healthy khi máy chủ thật đã nghe qua TCP.
+- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitattributes`, `.env.example` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `API_PORT`), `README.md` mục 3.1.
+- **Trạng thái:** Cú pháp `docker-compose.yml` đã kiểm bằng `docker compose config`; chưa dựng được ảnh trong môi trường viết mã (không có Docker daemon), nên phép thử `down -v` rồi `up -d --build` từ thư mục trống do sinh viên chạy trên máy mình.
+
 ## 8. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.

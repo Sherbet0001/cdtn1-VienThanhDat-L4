@@ -35,6 +35,19 @@ Trên Linux hoặc macOS thay lệnh ở bước 1–2 bằng `sudo -u postgres 
 
 Chạy lại được: `npm run migrate` và `npm run seed` chạy lần hai không lỗi và không nhân đôi dữ liệu. Migration ghi các tệp đã chạy vào bảng `schema_migrations` và bỏ qua chúng; seed dùng `ON CONFLICT DO NOTHING`.
 
+### 3.1. Chạy bằng Docker (tùy chọn, không cần cài Node hay PostgreSQL)
+
+Cần Docker Desktop (Docker Compose v2). Hệ thống gồm hai dịch vụ: `db` (PostgreSQL 16) và `api` (máy chủ Node.js, đồng thời phục vụ giao diện web). Hai lệnh, chạy từ thư mục gốc:
+
+1. `Copy-Item .env.example .env` (Linux/macOS: `cp .env.example .env`)
+2. `docker compose up -d --build`
+
+`api` tự dựng bảng và nạp dữ liệu mẫu khi khởi động (chạy lại không nhân đôi), rồi mở `http://localhost:3000/`. Kiểm tra: `docker compose ps` (cột STATUS của `db` và `api` phải là `healthy`), xem log: `docker compose logs api --tail 20` (mỗi dòng là một JSON có `requestId`).
+
+- Nếu cổng 3000 đang bận (ví dụ bạn đang chạy `npm start`), đổi `API_PORT` trong `.env` hoặc tắt tiến trình kia.
+- Làm lại từ con số không (xóa cả dữ liệu): `docker compose down -v` rồi `docker compose up -d --build`.
+- Xem dữ liệu: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`.
+
 ## 4. Kiểm tra hệ thống đã chạy đúng và chạy kiểm thử
 
 Chạy kiểm thử (không cần CSDL, không cần máy chủ):
@@ -119,7 +132,7 @@ docs/                tài liệu thiết kế
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [x] Buổi 11: khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
-- [ ] Đóng gói Docker (Dockerfile, `docker-compose.yml`): làm ở bước cuối của buổi 11
+- [x] Đóng gói Docker: `Dockerfile` nhiều giai đoạn, `docker-compose.yml` (db + api, chờ db healthy), `.dockerignore`; hướng dẫn ở mục 3.1 (TD-27)
 - [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
 - [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
 - Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
