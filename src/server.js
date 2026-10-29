@@ -2,6 +2,7 @@
 const { Pool } = require('pg');
 const { buildApp } = require('./app');
 const { taoLogger } = require('./logger');
+const { taoPool } = require('./db/pool');
 
 const logger = taoLogger();
 
@@ -10,11 +11,10 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-const pool = new Pool({
+const pool = taoPool(Pool, {
   connectionString: process.env.DATABASE_URL,
   max: Number(process.env.DB_POOL_MAX || 10),
-  connectionTimeoutMillis: 3000,   // không để yêu cầu treo vô hạn khi không có kết nối
-});
+}, logger);
 
 const port = Number(process.env.PORT || 3000);
 const server = buildApp(pool, { logger }).listen(port, () => {

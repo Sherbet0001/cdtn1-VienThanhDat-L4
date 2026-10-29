@@ -14,3 +14,15 @@ Mỗi mục là một lỗi đã thực sự gỡ theo bốn bước: tái lập
 | 6. Cách sửa | Thêm giới hạn trên `INT_TOI_DA = 2147483647` cho `center_id` ở hai validator (`src/validators/ticket.validator.js`, `src/validators/technician.validator.js`), sửa ở lớp validator vì đó là nơi hợp đồng dữ liệu được kiểm; không bọc `try/catch` ở controller. Giá trị lớn nhất hợp lệ (2147483647) vẫn được nhận. |
 | 7. Commit và xác nhận | Commit: `fix(validator): chặn center_id vượt kiểu INT, trả 400 thay vì 500` — link: https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4/commit/06cd4c7 · Test hồi quy `tests/bug-center-id.test.js` (3 test): chạy TRƯỚC khi sửa 3 FAIL, SAU khi sửa 3 PASS; toàn bộ bộ test 97/97 PASS |
 
+## BUG-002 · Critical — Tắt cơ sở dữ liệu làm sập cả máy chủ API
+
+| Dòng | Nội dung |
+|---|---|
+| 1. Mã và mức độ | BUG-002 · Critical (một thành phần phụ trợ ngừng làm cả hệ thống ngừng, không tự hồi phục) |
+| 2. Phát hiện bởi | Phép thử suy giảm có kiểm soát của buổi 11–12: tắt CSDL khi hệ thống đang chạy bằng Docker |
+| 3. Triệu chứng | Sau `docker compose stop db`, tải lại `http://localhost:3000/` hiện "This site can't be reached - localhost refused to connect" (`ERR_CONNECTION_REFUSED`); đáng ra phải hiện giao diện báo lỗi có mã tra cứu và nút Thử lại |
+| 4. Cách tái lập | Chạy `docker compose up -d --build`, mở trang để máy chủ có kết nối CSDL, rồi `docker compose stop db` và tải lại trang (lỗi xuất hiện mỗi lần). Chỉ cần dừng `db`, không cần dữ liệu đầu vào nào |
+| 5. Nguyên nhân | `src/server.js` tạo `new Pool(...)` nhưng không lắng nghe sự kiện `'error'` của pool. Khi CSDL tắt, PostgreSQL cắt các kết nối rảnh trong pool (mã `57P01`), thư viện `pg` phát sự kiện `'error'` trên pool; trong Node.js một `EventEmitter` phát `'error'` mà không có người nghe sẽ ném lỗi và làm CẢ TIẾN TRÌNH thoát, nên container `api` dừng. Chỗ vi phạm đầu tiên: pool được tạo mà không có bộ xử lý lỗi (bộ xử lý lỗi của Express chỉ bắt lỗi trong yêu cầu, không bắt sự kiện của pool) |
+| 6. Cách sửa | Tách việc tạo pool ra `src/db/pool.js` (`taoPool`) và gắn `pool.on('error', ...)` ghi cảnh báo, để pool tự mở kết nối mới khi CSDL trở lại; yêu cầu gọi lúc CSDL tắt sẽ đi qua bộ xử lý lỗi và trả 503 kèm mã tra cứu. Thêm `restart: unless-stopped` cho `api` trong `docker-compose.yml` như lớp bảo vệ thứ hai nếu tiến trình thoát vì lý do khác. Không bọc `try/catch` che triệu chứng |
+| 7. Commit và xác nhận | Commit: `fix(db): lắng nghe lỗi của pool để tắt CSDL không làm sập máy chủ` — link: https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4/commit/<điền mã commit sau khi push> · Test hồi quy `tests/bug-pool-error.test.js` (lớp pool giả phát `'error'`; không có bộ lắng nghe thì Node ném lỗi, có thì chỉ ghi cảnh báo); sau khi sửa chạy lại phép thử `docker compose stop db` trên máy: <ghi kết quả sau khi chạy lại> |
+
