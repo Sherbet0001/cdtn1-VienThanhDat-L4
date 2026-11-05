@@ -7,7 +7,7 @@ Test Report chi tiết (tám cột, kết quả chạy thật) nằm ở `docs/t
 
 **Kiểm:**
 - Luồng chính UC3 phân công KTV: xem phiếu chưa phân công (FR1), KTV đủ điều kiện (FR2), gán KTV (FR3, FR4).
-- Quy tắc nghiệp vụ đã hiện thực: QT-02 (chuẩn hóa số điện thoại), QT-04 (hạn cam kết, bỏ Chủ nhật), QT-06 (phiếu chỉ đi theo vòng đời, mỗi lần đổi trạng thái có một dòng log), QT-07 (một phiếu một KTV), QT-08 (cùng trung tâm, đang hoạt động, thành thạo ≥ 3), QT-13 (xóa mềm), QT-15 (che số điện thoại trong log), TD-16 (KTV còn phiếu mở không được ngừng hoạt động).
+- Quy tắc nghiệp vụ đã hiện thực: QT-02 (chuẩn hóa số điện thoại), QT-04 (hạn cam kết, bỏ Chủ nhật), QT-06 (mỗi lần đổi trạng thái có một dòng log), QT-07 (một phiếu một KTV), QT-08 (cùng trung tâm, đang hoạt động, thành thạo ≥ 3), QT-13 (xóa mềm), QT-15 (che số điện thoại trong log). TD-16 và các luồng còn lại được kiểm thêm trong bộ `npm test` nhưng không nằm trong 12 test case của Test Report.
 - CRUD Technician và Ticket qua API; xử lý lỗi: 400 (sai định dạng), 404, 409 (xung đột trạng thái nghiệp vụ), 500/503 không lộ chi tiết kỹ thuật.
 - Tính tái lập: chạy migration và seed hai lần không lỗi, không nhân đôi dữ liệu.
 
@@ -21,12 +21,12 @@ Test Report chi tiết (tám cột, kết quả chạy thật) nằm ở `docs/t
 
 | Tầng | Số test case (Test Report) | Kiểm cái gì |
 |---|---|---|
-| Unit (service/rules, không CSDL, đồng hồ được tiêm vào) | 7 | QT-02, QT-04, QT-08, QT-15, validator |
+| Unit (service/rules, không CSDL, đồng hồ được tiêm vào) | 6 | QT-02, QT-04, QT-08, QT-15 |
 | Integration (service + repository + PostgreSQL thật) | 3 | QT-06/07 trong giao dịch, khóa dòng, dữ liệu lưu đúng |
-| API (HTTP qua Express) | 2 | Mã trạng thái, nội dung thông báo, tác dụng phụ trên CSDL |
+| API (HTTP qua Express, CSDL thật) | 3 | Mã trạng thái, nội dung thông báo, tác dụng phụ trên CSDL, QT-13 |
 | **Tổng** | **12** | Hình kim tự tháp: đáy là unit, đỉnh là API |
 
-Cơ cấu theo năm loại BT3: luồng đúng × 4 · giá trị biên × 2 (hai bên cùng một ranh giới) · dữ liệu sai × 3 (kiểm cả mã trạng thái và thông báo) · bảo mật/chất lượng dữ liệu × 2 (chống injection, lỗi 5xx không lộ chi tiết, số điện thoại không lộ trong log) · tính tái lập × 1 (migration + seed hai lần).
+Cơ cấu theo năm loại BT3: luồng đúng × 5 · giá trị biên × 2 (hai bên cùng một ranh giới QT-04: thứ Sáu và thứ Bảy) · dữ liệu sai × 3 (kiểm cả mã trạng thái và thông báo) · bảo mật/chất lượng dữ liệu × 1 (số điện thoại không lộ trong log, QT-15) · tính tái lập × 1 (migration + seed hai lần). Mỗi quy tắc QT-02, 04, 06, 07, 08, 13, 15 có ít nhất một test case trong Test Report.
 
 **Kỹ thuật chọn dữ liệu thử:**
 - Phân vùng tương đương: mỗi nhóm đầu vào xử lý giống nhau thử một giá trị đại diện (ví dụ mức ưu tiên CAO/TRUNG_BINH/THAP; số điện thoại đúng định dạng/sai định dạng/rỗng).
