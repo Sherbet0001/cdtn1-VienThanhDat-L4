@@ -110,10 +110,10 @@ Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · 
 
 ### TC-09 · Tái lập · migration và seed chạy lần hai (PostgreSQL thật)
 1. **Mã:** TC-09
-2. **Tiền điều kiện:** CSDL thử mới tạo; đã chạy `migrations/` và `seeds/` một lần bằng `src/db/runner.js`.
-3. **Các bước:** (1) Đếm số dòng các bảng. (2) Chạy lại bộ chạy cho `migrations/` rồi `seeds/`. (3) Đếm lại.
+2. **Tiền điều kiện:** CSDL thử đã áp dụng `migrations/` (do mã dựng) và đã trống dữ liệu (hàm dọn chạy trước test).
+3. **Các bước:** (1) Chạy `seeds/` lần một bằng `applyFiles` của `src/db/runner.js`, đếm số dòng các bảng. (2) Chạy lại `migrations/` rồi `seeds/`. (3) Đếm lại.
 4. **Dữ liệu thử:** thư mục `migrations/` và `seeds/` của repo.
-5. **Kết quả mong đợi:** lần hai không lỗi, mọi tệp được báo "bỏ qua (đã chạy trước đó)"; số dòng `technician` (38), `technician_skill` (159), `customer`, `ticket` không đổi.
+5. **Kết quả mong đợi:** lần hai không lỗi; `migrations/` được BỎ QUA hết (đã ghi trong `schema_migrations`), `seeds/` chạy lại mà không nhân đôi (`ON CONFLICT DO NOTHING`); số dòng `technician` (38), `technician_skill` (159), `customer` (1.063), `ticket` (1.098) không đổi sau lần hai.
 6. **Ưu tiên:** Cao.
 7. **Kết quả thực tế:** (chưa chạy)
 8. **PASS/FAIL:** (chưa chạy)

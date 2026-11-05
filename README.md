@@ -58,6 +58,24 @@ npm test
 
 Kết quả đúng: dòng cuối in `# tests 83`, `# pass 83`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
 
+### Chạy kiểm thử trên PostgreSQL thật (Bài tập 3)
+
+Sáu test case (TC-07..TC-12 trong `docs/test-report.md`) chạy trên PostgreSQL thật nên cần một CSDL thử riêng. Biến `TEST_DATABASE_URL` phải trỏ tới CSDL có tên kết thúc bằng `_test` (mã từ chối chạy trên CSDL khác vì mỗi test xóa sạch dữ liệu). Chưa đặt biến này thì sáu test đó được BỎ QUA kèm lý do, không phải PASS.
+
+```
+docker run --rm -d --name l4-test-db -p 5433:5432 -e POSTGRES_PASSWORD=test -e POSTGRES_DB=l4_test postgres:16-alpine
+```
+
+Đợi vài giây cho PostgreSQL khởi động, rồi (PowerShell):
+
+```
+$env:TEST_DATABASE_URL = "postgres://postgres:test@localhost:5433/l4_test"
+npm test
+docker stop l4-test-db
+```
+
+Chạy riêng một test case: `node --test --test-name-pattern="TC-07"` (đổi mã). Cổng 5433 tránh đụng PostgreSQL cài sẵn ở cổng 5432.
+
 Kiểm tra máy chủ khi `npm start` đang chạy (mở cửa sổ PowerShell thứ hai):
 
 ```
