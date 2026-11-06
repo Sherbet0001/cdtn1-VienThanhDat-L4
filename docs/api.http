@@ -1,0 +1,66 @@
+### Các yêu cầu mẫu để thử API bằng tiện ích "REST Client" của VS Code (bấm "Send Request" phía trên mỗi yêu cầu).
+### Cần hệ thống đang chạy (npm start hoặc docker compose up -d). Mô tả đầy đủ: docs/api-contract.md.
+@host = http://localhost:3000
+
+### Kiểm tra sức khỏe (200; 503 khi CSDL không kết nối được)
+GET {{host}}/health
+
+### Danh sách phiếu chưa phân công của trung tâm 4 (FR1)
+GET {{host}}/api/tickets/unassigned?center_id=4&limit=5
+
+### Chi tiết một phiếu
+GET {{host}}/api/tickets/1
+
+### Kỹ thuật viên đủ điều kiện (QT-08) của một phiếu (FR2)
+GET {{host}}/api/tickets/1/eligible-technicians
+
+### Gán kỹ thuật viên cho phiếu (FR3, FR4): 200 hoặc 409 khi phiếu đã có người, 400 khi KTV không đủ điều kiện
+POST {{host}}/api/tickets/1/assignment
+Content-Type: application/json
+
+{ "technician_id": 7 }
+
+### Tiếp nhận phiếu mới (201)
+POST {{host}}/api/tickets
+Content-Type: application/json
+
+{ "customer_name": "An", "customer_phone": "0901234567", "device_name": "iPhone 15", "issue_category": "MAN_HINH", "center_id": 4 }
+
+### Dữ liệu sai: thiếu trường (400 VALIDATION_ERROR, liệt kê tên trường)
+POST {{host}}/api/tickets
+Content-Type: application/json
+
+{ "customer_name": "An" }
+
+### Dữ liệu sai: ký tự điều khiển (400, BUG-003)
+POST {{host}}/api/tickets
+Content-Type: application/json
+
+{ "customer_name": "An\u0000", "customer_phone": "0901234567", "device_name": "iPhone 15", "issue_category": "MAN_HINH", "center_id": 4 }
+
+### Sửa phiếu chưa phân công
+PATCH {{host}}/api/tickets/1
+Content-Type: application/json
+
+{ "priority": "TRUNG_BINH" }
+
+### Hủy phiếu (chỉ MOI hoặc DA_PHAN_CONG)
+DELETE {{host}}/api/tickets/1
+Content-Type: application/json
+
+{ "reason": "Khách đổi ý" }
+
+### Danh sách kỹ thuật viên
+GET {{host}}/api/technicians?center_id=4&limit=5
+
+### Chi tiết một kỹ thuật viên
+GET {{host}}/api/technicians/7
+
+### Thêm kỹ thuật viên (201)
+POST {{host}}/api/technicians
+Content-Type: application/json
+
+{ "full_name": "Lê Văn Thử", "center_id": 4, "level": "SO_CAP" }
+
+### Ngừng hoạt động kỹ thuật viên (xóa mềm QT-13; 409 khi còn phiếu mở)
+DELETE {{host}}/api/technicians/7

@@ -74,6 +74,8 @@ npm test
 docker stop l4-test-db
 ```
 
+Tự động: mỗi lần đẩy mã lên `main`, GitHub Actions (`.github/workflows/ci.yml`) dựng PostgreSQL thử và chạy `npm test`. Các yêu cầu mẫu để thử API bằng tay nằm ở `docs/api.http` (tiện ích REST Client của VS Code).
+
 Chạy riêng một test case: `node --test --test-name-pattern="TC-07"` (đổi mã). Cổng 5433 tránh đụng PostgreSQL cài sẵn ở cổng 5432.
 
 Kiểm tra máy chủ khi `npm start` đang chạy (mở cửa sổ PowerShell thứ hai):
