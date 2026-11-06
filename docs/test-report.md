@@ -3,7 +3,7 @@
 Sinh viên: Viên Thành Đạt · MSSV 2374802010107. Kế hoạch: `docs/test-plan.md`. Bug phát hiện: `docs/bug-log.md`.
 
 > **Đã chạy ngày 05/11/2026** trên máy sinh viên: `npm test` với PostgreSQL 16 thật (container `postgres:16-alpine`, CSDL `l4_test`): 123 test, 123 PASS, 0 FAIL, 0 bỏ qua. Ảnh chụp: `docs/anh/bt3-docker-run.png` (dựng CSDL thử), `docs/anh/bt3-npm-test-1.png` và `docs/anh/bt3-npm-test-2.png` (kết quả chạy; TC-01..TC-12 nằm ở ảnh 1).
-> Cả 12 test case đều PASS ở lần chạy này; bug phát hiện sau đó (nếu có) được ghi ở `docs/bug-log.md` và thêm test hồi quy.
+> Cả 12 test case đều PASS ở lần chạy này. Sau đó phát hiện BUG-003 (ký tự NUL trong văn bản nhập trả 500, xem `docs/bug-log.md`); sau khi sửa và thêm test hồi quy, chạy lại cho 127 test, 127 PASS, 0 FAIL, 0 bỏ qua (`docs/anh/bt3-npm-test-sau-bug003.png`).
 
 Mỗi test case có đủ tám cột: (1) Mã · (2) Tiền điều kiện · (3) Các bước · (4) Dữ liệu thử · (5) Kết quả mong đợi · (6) Ưu tiên · (7) Kết quả thực tế · (8) PASS/FAIL.
 Cách chạy riêng một test case: `node --test --test-name-pattern="TC-05"` (đổi mã). Chạy tất cả: `npm test`.
