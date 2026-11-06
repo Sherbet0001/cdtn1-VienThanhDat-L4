@@ -148,3 +148,7 @@ Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · 
 6. **Ưu tiên:** Trung bình.
 7. **Kết quả thực tế:** HTTP 200; dòng KTV vẫn còn trong bảng technician (1 dòng); is_active = false; khớp mong đợi.
 8. **PASS/FAIL:** PASS (ảnh `docs/anh/bt3-npm-test-1.png`)
+
+## Kiểm thử tự động (CI)
+
+Mỗi lần đẩy mã lên `main`, GitHub Actions (`.github/workflows/ci.yml`) dựng PostgreSQL 16 và chạy `npm ci`, `npm test`. Lần chạy đầu tiên (ci #1, commit `cca2f9f`) báo xanh sau 32 giây: ảnh `docs/anh/ci-xanh.png`.
