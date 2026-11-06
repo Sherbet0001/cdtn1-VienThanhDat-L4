@@ -38,7 +38,7 @@ async function taoPoolThu() {
   kiemTraAnToan(URL_THU);
   const { Pool } = require('pg');
   const { listSqlFiles, applyFiles } = require('../../src/db/runner');
-  const pool = new Pool({ connectionString: URL_THU, max: 4 });
+  const pool = new Pool({ connectionString: URL_THU, max: 4, connectionTimeoutMillis: 8000 });
   pool.khoa = await pool.connect();
   await pool.khoa.query('SELECT pg_advisory_lock($1)', [KHOA_DOC]);
   await applyFiles(pool.khoa, listSqlFiles(path.join(GOC, 'migrations')), { track: true });
