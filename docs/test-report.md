@@ -150,6 +150,18 @@ Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · 
 7. **Kết quả thực tế:** HTTP 200; dòng KTV vẫn còn trong bảng technician (1 dòng); is_active = false; khớp mong đợi.
 8. **PASS/FAIL:** PASS (ảnh `docs/screenshots/TC-12.png`, chạy bằng `npm run tc -- TC-12`)
 
+## Kiểm tra test có khả năng thất bại
+
+Tiêu chí 5 của Test Plan: cố tình sửa mã thì ít nhất một test phải chuyển sang FAIL. Lệnh `npm run kiem-test` (`scripts/kiem-test-that-bai.js`) sửa mã ba lần, chạy cả bộ test, rồi khôi phục tệp nguyên vẹn. Chạy ngày 06/11/2026 trên PostgreSQL thật, ảnh `docs/screenshots/kiem-test-that-bai.png`:
+
+| Lần sửa cố ý | Quy tắc | Kết quả (bản gốc 127 PASS) | Test phát hiện |
+|---|---|---|---|
+| M1: đổi `thành thạo < 3` thành `<= 3` | QT-08 | 126 PASS, 1 FAIL | test biên "thành thạo đúng 3 được, đúng 2 bị từ chối" |
+| M2: bỏ việc lùi khi hạn rơi vào Chủ nhật | QT-04 | 123 PASS, 4 FAIL | TC-02 và 3 test biên/thời gian khác |
+| M3: che số điện thoại sai (lộ 4 số cuối) | QT-15 | 125 PASS, 2 FAIL | TC-06 và test che số điện thoại |
+
+Sau khi khôi phục: 127 PASS, 0 FAIL; phát hiện 3/3 lần sửa. Lưu ý trung thực: M1 không bị TC-04 phát hiện (TC-04 dùng mức thành thạo 4, xa ranh giới); biên QT-08 được giữ bởi test riêng trong bộ `npm test`, không nằm trong 12 test case của báo cáo.
+
 ## Kiểm thử tự động (CI)
 
 Mỗi lần đẩy mã lên `main`, GitHub Actions (`.github/workflows/ci.yml`) dựng PostgreSQL 16 và chạy `npm ci`, `npm test`. Lần chạy đầu tiên (ci #1, commit `cca2f9f`) báo xanh sau 32 giây: ảnh `docs/anh/ci-xanh.png`.
