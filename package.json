@@ -8,7 +8,8 @@
     "start": "node --env-file=.env src/server.js",
     "migrate": "node --env-file=.env src/db/runner.js migrations",
     "seed": "node --env-file=.env src/db/runner.js seeds",
-    "test": "node --test"
+    "test": "node --test",
+    "tc": "node scripts/chay-tc.js"
   },
   "engines": {
     "node": ">=20.6 <27"
