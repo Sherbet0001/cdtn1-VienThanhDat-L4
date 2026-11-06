@@ -9,7 +9,8 @@
     "migrate": "node --env-file=.env src/db/runner.js migrations",
     "seed": "node --env-file=.env src/db/runner.js seeds",
     "test": "node --test",
-    "tc": "node scripts/chay-tc.js"
+    "tc": "node scripts/chay-tc.js",
+    "kiem-test": "node scripts/kiem-test-that-bai.js"
   },
   "engines": {
     "node": ">=20.6 <27"
