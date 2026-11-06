@@ -2,6 +2,7 @@
 /** Kiểm tra ĐỊNH DẠNG dữ liệu vào của phiếu (tầng 1). Quy tắc nghiệp vụ nằm ở service. */
 const { ValidationError } = require('../errors/AppError');
 const { chuanHoaSdt } = require('./phone');
+const { coKyTuDieuKhien, LY_DO_KY_TU_DIEU_KHIEN } = require('./text');
 
 const CATEGORIES = Object.freeze(['MAN_HINH', 'PIN', 'SAC', 'PHAN_MEM', 'NUOC_VAO', 'KHAC']);
 const PRIORITIES = Object.freeze(['CAO', 'TRUNG_BINH', 'THAP']);
@@ -18,6 +19,7 @@ function chuoi(body, ten, toiDa, loi) {
   const t = v.trim();
   if (t === '') loi.push({ field: ten, reason: 'không được để trống' });
   else if (t.length > toiDa) loi.push({ field: ten, reason: `tối đa ${toiDa} ký tự` });
+  else if (coKyTuDieuKhien(t)) loi.push({ field: ten, reason: LY_DO_KY_TU_DIEU_KHIEN });   // BUG-003
   return t;
 }
 
@@ -161,6 +163,7 @@ function validateCancel(body) {
   if (typeof body.reason !== 'string') return nem([{ field: 'reason', reason: 'phải là chuỗi' }]);
   const t = body.reason.trim();
   if (t.length > 255) return nem([{ field: 'reason', reason: 'tối đa 255 ký tự' }]);
+  if (coKyTuDieuKhien(t)) return nem([{ field: 'reason', reason: LY_DO_KY_TU_DIEU_KHIEN }]);   // BUG-003
   return t || MAC_DINH;
 }
 

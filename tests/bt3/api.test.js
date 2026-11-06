@@ -73,3 +73,14 @@ test('TC-12 QT-13 luồng đúng: DELETE /api/technicians/:id là xóa mềm -> 
   assert.equal(rows.length, 1, 'dòng KTV bị xóa vật lý (vi phạm QT-13)');
   assert.equal(rows[0].is_active, false);
 });
+
+test('BUG-003 (hồi quy qua API): ký tự NUL trong customer_name -> 400 VALIDATION_ERROR tại customer_name, không phải 500, không ghi dòng nào', opts, async () => {
+  const truoc = await demDong(pool, 'ticket');
+  const r = await goi('POST', '/api/tickets',
+    { customer_name: 'An\u0000', customer_phone: '0901234567', device_name: 'iPhone 15', issue_category: 'MAN_HINH', center_id: 4 });
+
+  assert.equal(r.status, 400);
+  assert.equal(r.body.error.code, 'VALIDATION_ERROR');
+  assert.deepEqual(r.body.error.fields.map((f) => f.field), ['customer_name']);
+  assert.equal(await demDong(pool, 'ticket'), truoc);
+});

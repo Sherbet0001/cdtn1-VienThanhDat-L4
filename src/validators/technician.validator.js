@@ -5,6 +5,7 @@
  * Quy tắc nghiệp vụ (ví dụ "đang giữ phiếu thì không ngừng hoạt động") nằm ở service, không ở đây.
  */
 const { ValidationError } = require('../errors/AppError');
+const { coKyTuDieuKhien, LY_DO_KY_TU_DIEU_KHIEN } = require('./text');
 
 const LEVELS = Object.freeze(['SO_CAP', 'TRUNG_CAP', 'CAO_CAP']);
 const TEN_TOI_DA = 100;
@@ -42,6 +43,8 @@ function validateTechnician(body) {
     loi.push({ field: 'full_name', reason: 'không được để trống' });
   } else if (ten.length > TEN_TOI_DA) {
     loi.push({ field: 'full_name', reason: `tối đa ${TEN_TOI_DA} ký tự` });
+  } else if (coKyTuDieuKhien(ten)) {
+    loi.push({ field: 'full_name', reason: LY_DO_KY_TU_DIEU_KHIEN });   // BUG-003
   }
 
   if (body.center_id === undefined || body.center_id === null) {
