@@ -2,7 +2,7 @@
 
 - **Dự án:** CDTN1 – Viên Thành Đạt (MSSV 2374802010107) – Luồng L4, Track SE
 - **Phạm vi:** Điều chỉnh sau phản hồi Bài tập 1 và chuẩn bị cho Bài tập 2
-- **Cập nhật:** 17/10/2026 (thêm TD-14 đến TD-18)
+- **Cập nhật:** 07/11/2026 (thêm TD-28, TD-29 sau phản hồi Bài tập 2)
 
 ## 1. Cách ghi
 
@@ -34,6 +34,8 @@
 | TD-16 | Xóa mềm kỹ thuật viên và quy tắc "đang giữ phiếu thì không ngừng hoạt động" | SỬA (bổ sung cho BT2) | `src/services/technician.service.js` |
 | TD-17 | Giữ 6 bảng của ERD; không thêm bảng danh mục từ bộ dữ liệu mẫu | GIỮ NGUYÊN | `migrations/001_init.sql`, `seeds/` |
 | TD-18 | Chưa làm xác thực JWT ở buổi 8 | HOÃN | `src/app.js`, `src/routes/` |
+| TD-28 | Phản hồi BT2: chưa có đăng nhập và phân quyền | GHI NHẬN (chốt ở buổi 15) | `docs/test-plan.md`, `docs/deployment-guide.md` |
+| TD-29 | Phản hồi BT2: thông điệp commit chung chung | GIỮ lịch sử, áp quy ước từ nay | quy ước commit |
 
 ## 3. Sau phản hồi Bài tập 1 của giảng viên (17/10/2026)
 
@@ -268,7 +270,27 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitattributes`, `.env.example` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `API_PORT`), `README.md` mục 3.1.
 - **Trạng thái:** Đã chạy trên máy sinh viên (Docker 28.5.2, Compose v2.40): `docker compose up -d --build` dựng được ảnh, `db` và `api` đều `healthy`, log JSON có `requestId`. Gặp một vấn đề nhỏ: Docker gọi `/health` mỗi 10 giây làm log ngập dòng "yêu cầu hoàn tất" và che mất các dòng khác (`--tail 20` chỉ thấy `/health`); đã sửa ở `src/logger.js`: `/health` thành công ghi ở mức `debug`, `/health` lỗi (4xx, 5xx) vẫn ghi `info`.
 
-## 8. Điểm còn mở
+## 8. Sau phản hồi Bài tập 2 của giảng viên (07/11/2026)
+
+Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai thực thể, nhiều quy tắc QT, 111 kiểm thử PASS, ba trạng thái giao diện, Docker hai lệnh, log JSON, báo cáo trung thực; mục kiểm chứng (bảng 4.2) đạt đủ. Hai điểm cần khắc phục được xử lý ở TD-28 và TD-29.
+
+### TD-28 — Chưa có đăng nhập và phân quyền (phản hồi BT2)
+
+- **Nguồn:** phản hồi BT2: "Chưa có đăng nhập và phân quyền (em đã ghi nhận)"; liên quan TD-18 và TD-24.
+- **Quyết định:** GHI NHẬN, chưa hiện thực trong Bài tập 3. Trong Test Plan, mục đăng nhập/phân quyền/token (OWASP A01, A07) ghi rõ là cố ý không kiểm; trong Test Report và checklist bảo mật ghi "không áp dụng", không ghi "đạt". Deployment Guide nêu rõ hệ thống chưa có xác thực nên chỉ chạy trong mạng nội bộ hoặc máy cục bộ, không mở công khai. Sau buổi 15 (bảo mật API) sẽ đánh giá lại có đủ thời gian làm xác thực tối thiểu (đăng nhập, token có hạn, kiểm vai trò) hay không.
+- **Lý do:** thêm xác thực kéo theo đổi hợp đồng API, `assigned_by` lấy từ token, QT-14, giao diện đăng nhập và bộ test mới; làm vội trước hạn nộp dễ sinh bug bảo mật mới. Báo cáo trung thực về phần chưa làm tốt hơn khẳng định "đã bảo mật".
+- **Ảnh hưởng:** `docs/test-plan.md` (mục 1), `docs/test-report.md`, `docs/deployment-guide.md` và checklist bảo mật (buổi 15); `src/app.js`, `src/routes/` chỉ đổi nếu quyết định làm.
+- **Trạng thái:** Mở. Quyết định cuối chốt ở buổi 15.
+
+### TD-29 — Thông điệp commit còn chung chung (phản hồi BT2)
+
+- **Nguồn:** phản hồi BT2: "Một phần thông điệp commit còn chung chung"; liên quan TD-06.
+- **Quyết định:** GIỮ NGUYÊN lịch sử đã đẩy, không viết lại (không `rebase`/`force push`). Các commit chung chung ("Add files via upload", "Create 1", "Delete …") đều thuộc giai đoạn từ 26/09 đến 17/10/2026 (làm Bài tập 1 và đầu Bài tập 2); từ sau đó mọi commit theo mẫu `loại(phạm-vi): mô tả` (`fix`, `feat`, `docs`, `test`, `ci`), mỗi bug một commit riêng có mã BUG-xx.
+- **Lý do:** repo là PUBLIC, tag `v0.2` và các link commit trong Bug Log trỏ vào mã băm hiện có; viết lại lịch sử sẽ làm các link này hỏng, trái với yêu cầu link commit phải mở được.
+- **Ảnh hưởng:** quy ước commit từ nay; không đổi mã nguồn.
+- **Trạng thái:** Đã áp dụng cho các commit mới (có thể kiểm bằng `git log --oneline`).
+
+## 9. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.
