@@ -16,7 +16,7 @@ Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ th
 - **PostgreSQL 13 trở lên** (đã thử với PostgreSQL 16). Từ bản 13, extension `btree_gist` là "trusted" nên chủ sở hữu CSDL tạo được mà không cần quyền siêu người dùng.
 - Công cụ dòng lệnh `psql` (đi kèm PostgreSQL) để tạo người dùng và CSDL lần đầu.
 - `curl.exe` để gọi thử API (có sẵn trên Windows 10 trở lên). Trên Windows hãy gõ `curl.exe`, không gõ `curl`, vì `curl` trong PowerShell là lệnh khác.
-- Biến môi trường: xem `.env.example` (`DATABASE_URL`, `PORT`, `JWT_SECRET`, ...). Tệp `.env` thật nằm trong `.gitignore`, không commit.
+- Biến môi trường: xem `.env.example` (`DATABASE_URL`, `PORT`, `LOG_LEVEL`, ...). Tệp `.env` thật nằm trong `.gitignore`, không commit.
 
 ## 3. Cài đặt và chạy
 
@@ -50,13 +50,13 @@ Cần Docker Desktop (Docker Compose v2). Hệ thống gồm hai dịch vụ: `d
 
 ## 4. Kiểm tra hệ thống đã chạy đúng và chạy kiểm thử
 
-Chạy kiểm thử (không cần CSDL, không cần máy chủ):
+Chạy kiểm thử (không cần máy chủ; test cần PostgreSQL thật xem mục kế tiếp):
 
 ```
 npm test
 ```
 
-Kết quả đúng: dòng cuối in `# tests 83`, `# pass 83`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
+Kết quả đúng khi chưa có CSDL thử: `# fail 0`, 7 test cần PostgreSQL được bỏ qua (`# skipped 7`); khi đã đặt `TEST_DATABASE_URL`: `# tests 127`, `# pass 127`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
 
 ### Chạy kiểm thử trên PostgreSQL thật (Bài tập 3)
 
@@ -76,7 +76,7 @@ docker stop l4-test-db
 
 Tự động: mỗi lần đẩy mã lên `main`, GitHub Actions (`.github/workflows/ci.yml`) dựng PostgreSQL thử và chạy `npm test`. Các yêu cầu mẫu để thử API bằng tay nằm ở `docs/api.http` (tiện ích REST Client của VS Code).
 
-Chạy riêng một test case: `node --test --test-name-pattern="TC-07"` (đổi mã). Cổng 5433 tránh đụng PostgreSQL cài sẵn ở cổng 5432.
+Chạy riêng một test case của Test Report: `npm run tc -- TC-07` (đổi mã TC-01..TC-12; TC-07..TC-12 cần `TEST_DATABASE_URL`). Nếu `localhost` bị treo trên Windows, dùng `127.0.0.1` trong `TEST_DATABASE_URL`. Cổng 5433 tránh đụng PostgreSQL cài sẵn ở cổng 5432.
 
 Kiểm tra máy chủ khi `npm start` đang chạy (mở cửa sổ PowerShell thứ hai):
 
@@ -137,10 +137,12 @@ docs/                tài liệu thiết kế
 | `thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế (TD-01 trở đi) |
 | `bang-chung-chay-thuc-te.md` | Kết quả chạy thật: migrate, seed, curl, giao diện |
 | `bang-chung-luong-chinh.md`, `anh/` | Ảnh chụp luồng chính chạy trên dữ liệu thật |
+| `test-plan.md`, `test-report.md`, `bug-log.md` | Kế hoạch kiểm thử, báo cáo 12 test case chạy thật, nhật ký lỗi |
+| `screenshots/`, `api.http` | Ảnh chụp kết quả chạy từng test case; yêu cầu mẫu thử API (REST Client) |
 | `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
-## 6. Trạng thái hiện tại (buổi 11)
+## 6. Trạng thái hiện tại
 
 - [x] Khung `src/` tách ba lớp routes / services / repositories (và validators, errors, contracts)
 - [x] Migration `001_init.sql` dựng 6 bảng theo DDL BT1; seed 38 KTV, 159 kỹ năng, 1.063 khách, 1.098 phiếu; chạy lại không nhân đôi (`docs/bang-chung-chay-thuc-te.md`)
@@ -148,16 +150,17 @@ docs/                tài liệu thiết kế
 - [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận, sửa (`PATCH`) và hủy mềm (`DELETE`, TD-26); quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
-- [x] 107 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp; không cần CSDL)
+- [x] 127 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp, API; 7 test chạy trên PostgreSQL thật qua `TEST_DATABASE_URL`)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
-- [x] Buổi 11: khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
+- [x] Khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
 - [x] Đóng gói Docker: `Dockerfile` nhiều giai đoạn, `docker-compose.yml` (db + api, chờ db healthy), `.dockerignore`; hướng dẫn ở mục 3.1 (TD-27)
-- [ ] Đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch: chờ hướng dẫn các buổi sau
-- [ ] Đăng nhập JWT và phân quyền theo trung tâm (TD-18); test đồng thời TC-11 (TD-08)
+- [x] Kế hoạch kiểm thử, báo cáo kiểm thử (12 test case chạy thật, có ảnh), nhật ký lỗi (3 lỗi đã sửa, mỗi lỗi một commit) và CI GitHub Actions: `docs/test-plan.md`, `docs/test-report.md`, `docs/bug-log.md`
+- [ ] Chưa hiện thực: đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch
+- [ ] Chưa hiện thực: đăng nhập và phân quyền theo trung tâm (TD-18, TD-28); test đồng thời (TD-08)
 - Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
 
-## 7. Log và xử lý lỗi (buổi 11)
+## 7. Log và xử lý lỗi
 
 - Máy chủ ghi log dạng JSON, một dòng một sự kiện, ra màn hình (stdout). Đổi mức bằng biến `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) trong `.env`, không cần sửa mã.
 - Mỗi phản hồi có header `X-Request-Id`. Khi giao diện hiện "Mã tra cứu: …", mã đó chính là `requestId` trong dòng log lỗi tương ứng.
