@@ -139,7 +139,8 @@ docs/                tài liệu thiết kế
 | `bang-chung-luong-chinh.md`, `anh/` | Ảnh chụp luồng chính chạy trên dữ liệu thật |
 | `test-plan.md`, `test-report.md`, `bug-log.md` | Kế hoạch kiểm thử, báo cáo 12 test case chạy thật, nhật ký lỗi |
 | `screenshots/`, `api.http` | Ảnh chụp kết quả chạy từng test case; yêu cầu mẫu thử API (REST Client) |
-| `deployment-guide.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc |
+| `deployment-guide.md` | Deployment Guide (tiếng Anh): dựng hệ thống bằng hai lệnh Docker, biến môi trường, dữ liệu mẫu, cách kiểm tra |
+| `huong-dan-csdl-bt1.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc (bản BT1) |
 | `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
 
 ## 6. Trạng thái hiện tại

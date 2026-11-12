@@ -1,95 +1,102 @@
-# Hướng dẫn dựng và kiểm tra môi trường – L4
+# Deployment Guide — Smart CRM Mekong Mobile, flow L4 "Technician assignment" (track SE), tag v1.0
 
-Sinh viên: Viên Thành Đạt · MSSV 2374802010107 · Track SE · Phiên bản BT1
+Goal: bring the system up from a machine that has only **Docker and Git**, with **two commands** after cloning. No Node.js and no PostgreSQL are needed.
 
-Tài liệu này dùng để dựng cơ sở dữ liệu của gói thiết kế BT1 và kiểm tra các ràng buộc quan trọng. Chưa có mã backend/frontend, nên phạm vi chỉ gồm PostgreSQL và các sơ đồ.
+## 1. Requirements
 
-## 1. Yêu cầu
-
-| Thành phần | Yêu cầu | Kiểm tra |
+| Item | Requirement | Check |
 |---|---|---|
-| PostgreSQL | 13 trở lên (đã thử trên 16) | `psql --version` |
-| Công cụ `psql` | Có trong PATH | `psql --version` |
-| diagrams.net | Mở tệp `.drawio` (web hoặc ứng dụng) | – |
-| Shell | bash (Linux, macOS, Git Bash, WSL) | – |
+| OS | Windows 10/11 (Docker Desktop), Linux or macOS | – |
+| Docker Engine + Compose | Docker 24+ and Compose v2 (tested with Docker 28.5.2, Compose v2.40) | `docker compose version` |
+| Git | 2.30+ | `git --version` |
+| Disk space | about 2 GB free (images and the database volume) | – |
+| Free port | `3000` on the host (change `API_PORT` in `.env` if it is busy) | – |
 
-## 2. Dựng cơ sở dữ liệu
+The database port 5432 is **not** published to the host, so a PostgreSQL already installed on your machine does not conflict.
 
-Thực hiện đúng các bước 1–6 ở Mục 3 của `README.md` (tạo người dùng và CSDL, sao chép `.env`, `npm install`, `npm run migrate`, `npm run seed`). Sau đó kiểm tra:
+## 2. Setup steps
 
-```
-psql "$DATABASE_URL" -c '\dt'
-```
+Run each step exactly as written (PowerShell and bash both work unless noted).
 
-Đạt khi migration không báo lỗi và `\dt` liệt kê 6 bảng của L4 (`appointment`, `customer`, `technician`, `technician_skill`, `ticket`, `ticket_status_log`) cùng bảng `schema_migrations`. `docs/schema.sql` vẫn là bản DDL BT1 để đọc; `migrations/001_init.sql` chỉ khác ở chỗ thêm `IF NOT EXISTS`.
+1. Clone the release tag into an empty folder:
+   ```
+   git clone --branch v1.0 https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4.git
+   cd cdtn1-VienThanhDat-L4
+   ```
+2. Create the configuration file (the sample values already work):
+   ```
+   cp .env.example .env
+   ```
+   PowerShell alternative: `Copy-Item .env.example .env`
+3. Build and start the system:
+   ```
+   docker compose up -d --build
+   ```
+   The first build downloads the base images and can take a few minutes. On start, the `api` service waits until the database is healthy, then creates the tables (migrations) and loads the sample data (seeds) **automatically**. Both are safe to repeat: running them again does not duplicate rows.
 
-Các lệnh `psql "$DATABASE_URL"` trong tài liệu này viết cho bash. Trên PowerShell, đặt trước `$env:DATABASE_URL = 'postgres://l4_user:change_me@localhost:5432/l4_dev'` và thay `"$DATABASE_URL"` bằng `$env:DATABASE_URL`. Bộ smoke test ở Mục 4 dùng heredoc nên chạy trong Git Bash hoặc WSL.
+Steps 2 and 3 are the only two commands needed after cloning.
 
-## 3. Checklist kiểm tra
+To stop: `docker compose down` (keeps the data). To reset to a clean state: `docker compose down -v` (deletes the database volume; the sample data is loaded again on the next start).
 
-| # | Việc cần kiểm tra | Cách kiểm tra | Đạt khi |
+## 3. Environment variables
+
+All variables are listed in `.env.example`. The real `.env` is never committed.
+
+| Name | Meaning | Sample value | Required |
 |---|---|---|---|
-| 1 | Có 6 bảng | `psql "$DATABASE_URL" -c '\dt'` | Liệt kê 6 bảng của L4 (và `schema_migrations`) |
-| 2 | Extension `btree_gist` đã bật | `psql "$DATABASE_URL" -c '\dx'` | Có dòng `btree_gist` |
-| 3 | Ràng buộc chống trùng lịch tồn tại | `psql "$DATABASE_URL" -c '\d appointment'` | Có `ex_appointment_no_overlap` |
-| 4 | Chỉ mục cho FR1, FR2/FR6, FR8 | `psql "$DATABASE_URL" -c '\di'` | Có `ix_ticket_unassigned`, `ix_ticket_technician`, `ix_appointment_technician_start` |
-| 5 | Các ràng buộc hoạt động | Chạy bộ kiểm tra nhanh ở Mục 4 | Mỗi ca cho đúng kết quả mong đợi |
-| 6 | Sơ đồ mở được | Mở `docs/usecase.drawio`, `architecture.drawio`, `erd.drawio`, `wireframe.drawio` bằng diagrams.net | Không lỗi, bố cục không vỡ |
-| 7 | Không có bí mật trong repo | `git ls-files .env` | Không in ra gì (chỉ có `.env.example`) |
+| `DB_NAME` | PostgreSQL database name (Docker Compose) | `l4_dev` | yes |
+| `DB_USER` | PostgreSQL user (Docker Compose) | `l4_user` | yes |
+| `DB_PASSWORD` | PostgreSQL password (Docker Compose). **Change it for any real deployment.** | `change_me` | yes |
+| `API_PORT` | Host port that maps to the API | `3000` | no (default 3000) |
+| `DB_POOL_MAX` | Maximum database connections in the pool | `10` | no (default 10) |
+| `LOG_LEVEL` | `debug`, `info`, `warn` or `error` (JSON logs on stdout) | `info` | no (default info) |
+| `TZ` | Time zone used for the working-day rule (Sunday is skipped in Vietnam time) | `Asia/Ho_Chi_Minh` | no |
+| `DATABASE_URL` | Connection string, used only when running with `npm` instead of Docker | `postgres://l4_user:change_me@localhost:5432/l4_dev` | only for `npm` |
+| `PORT`, `NODE_ENV` | Set by the container (`3000`, `production`); keep as is | – | no |
 
-## 4. Bộ kiểm tra nhanh ràng buộc (smoke test)
+`DATABASE_URL` and `TEST_DATABASE_URL` inside the container are built by `docker-compose.yml` from `DB_*`; you do not set them. The test database is named `<DB_NAME>_test` and is created automatically the first time the tests run. There are no authentication or JWT variables because the system has no login yet (TD-18, TD-28).
 
-Chạy trên CSDL vừa dựng, rồi dọn dữ liệu thử. Tiền tố `[n]` là mã ca; dòng `ERROR` xuất hiện ở các ca 2, 3, 5–10 là **kết quả mong đợi**.
+## 4. Sample data
 
-```
-psql "$DATABASE_URL" -X <<'SQL'
-INSERT INTO customer(full_name,phone) VALUES ('Nguyen Van An','0901234567');
-INSERT INTO technician(full_name,center_id,level) VALUES ('Tran Minh Khoa',1,'CAO_CAP');
-INSERT INTO technician_skill VALUES (1,'MAN_HINH',4);
-INSERT INTO ticket(ticket_code,customer_id,center_id,device_name,issue_category,priority,received_at,due_date)
- VALUES ('BH-001287/2026',1,1,'iPhone 14','MAN_HINH','CAO','2026-10-05 10:30+07','2026-10-06 10:30+07');
+Loaded automatically on the first start (and re-checked on every start) from `seeds/`. After it finishes you should have:
 
-\echo '[1] Đặt lịch hợp lệ 09:00-09:30: thành công'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000001/2026',1,1,'GIAO_MAY','2026-10-12 09:00+07','2026-10-12 09:30+07');
-\echo '[2] Trùng đúng khung giờ: lỗi 23P01'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000002/2026',1,1,'GIAO_MAY','2026-10-12 09:00+07','2026-10-12 09:30+07');
-\echo '[3] Chồng lấn một phần 09:15-09:45: lỗi 23P01'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000003/2026',1,1,'GIAO_MAY','2026-10-12 09:15+07','2026-10-12 09:45+07');
-\echo '[4] Liền kề 09:30-10:00: thành công (khoảng nửa mở)'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000004/2026',1,1,'GIAO_MAY','2026-10-12 09:30+07','2026-10-12 10:00+07');
-\echo '[5] Lịch dài 45 phút: lỗi 23514 ck_appointment_length'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000005/2026',1,1,'GIAO_MAY','2026-10-12 11:00+07','2026-10-12 11:45+07');
-\echo '[6] Mức thành thạo = 6: lỗi 23514'
-INSERT INTO technician_skill VALUES (1,'PIN',6);
-\echo '[7] Hạn cam kết không sau thời điểm nhận: lỗi 23514 ck_ticket_due'
-INSERT INTO ticket(ticket_code,customer_id,center_id,device_name,issue_category,priority,received_at,due_date)
- VALUES ('BH-000002/2026',1,1,'X','PIN','THAP','2026-10-05 10:30+07','2026-10-05 10:30+07');
-\echo '[8] Số điện thoại sai định dạng: lỗi 23514'
-INSERT INTO customer(full_name,phone) VALUES ('B','12345');
-\echo '[9] Kỹ thuật viên không tồn tại: lỗi 23503 (khóa ngoại)'
-INSERT INTO appointment(appointment_code,ticket_id,technician_id,type,start_at,end_at)
- VALUES ('LH000009/2026',1,999,'GIAO_MAY','2026-10-13 09:00+07','2026-10-13 09:30+07');
-\echo '[10] Trạng thái phiếu không hợp lệ: lỗi 23514'
-UPDATE ticket SET status='LUNG_TUNG' WHERE ticket_id=1;
+| Data | Count |
+|---|---|
+| Technicians | 38 |
+| Technician skills | 159 |
+| Customers | 1,063 |
+| Open warranty tickets | 1,098, of which **12** are unassigned (status `MOI`) |
 
-\echo 'Dọn dữ liệu thử'
-TRUNCATE ticket_status_log, appointment, ticket, technician_skill, technician, customer RESTART IDENTITY;
-SQL
-```
+To compare with your own run, the quickest check is the unassigned-ticket list (see step 3 of the next section): it must report `"total":12`.
 
-Kết quả đúng: ca 1 và 4 báo `INSERT 0 1`; các ca còn lại báo `ERROR` với mã nêu trong dòng `\echo` tương ứng. Ca 2–3 chứng minh yêu cầu NFR3/BR-L4-02 ở mức CSDL; kiểm thử đồng thời 100 lần (TC-11) sẽ thực hiện khi có backend.
+## 5. Verify it works
 
-## 5. Lỗi thường gặp
+Run these in order. On Windows PowerShell type `curl.exe`, not `curl` (in PowerShell `curl` is a different command).
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| # | Command | Expected result |
 |---|---|---|
-| `permission denied to create extension "btree_gist"` | PostgreSQL dưới 13, hoặc người dùng không sở hữu CSDL | Dùng PostgreSQL 13+ và tạo CSDL với `OWNER l4_user`; hoặc chạy `CREATE EXTENSION btree_gist;` bằng tài khoản `postgres` rồi nạp lại |
-| `relation "customer" already exists` | Nạp `schema.sql` lên CSDL đã có bảng | `DROP DATABASE l4_dev;` rồi tạo lại CSDL trống (bước 2 của README) |
-| `connection refused` | PostgreSQL chưa chạy hoặc `DATABASE_URL` sai cổng | Kiểm tra dịch vụ PostgreSQL và giá trị trong `.env` |
-| `password authentication failed` | Mật khẩu trong `.env` khác mật khẩu đã tạo ở bước 1 | Sửa `.env` hoặc đặt lại mật khẩu cho `l4_user` |
-| `$DATABASE_URL` rỗng | Chưa nạp `.env` vào shell | `set -a; . ./.env; set +a` |
+| 1 | `docker compose ps` | Services `api` and `db` both show `(healthy)` (wait up to about 30 seconds after step 3 of Setup) |
+| 2 | `curl.exe -s http://localhost:3000/health` | `{"status":"ok","db":"ok"}` |
+| 3 | `curl.exe -s "http://localhost:3000/api/tickets/unassigned?limit=3"` | JSON with `"total":12` and 3 items in `items` |
+| 4 | Open `http://localhost:3000` in a browser | The ticket list page shows 12 unassigned tickets |
+| 5 | `docker compose exec api npm test` | The summary ends with `tests 127`, `pass 127`, `fail 0`, `skipped 0` |
+
+If the application opens but a list is empty, the sample data did not load: run `docker compose logs api --tail 50` and look for lines starting with `seeds:`.
+
+## 6. Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Bind for 0.0.0.0:3000 failed: port is already allocated` | Another program uses port 3000 | Set `API_PORT=3001` in `.env`, run `docker compose up -d` again, and use port 3001 in the URLs |
+| `curl: (52) Empty reply from server` right after `up` | The API is still starting | Wait about 10 seconds and retry; `docker compose ps` must show `healthy` |
+| An old volume holds a different password (`password authentication failed`) | The database volume was created with earlier values | `docker compose down -v`, then `docker compose up -d --build` |
+| Error text shows an unreadable lookup code | Normal: the server returns a reference code instead of internal details | Search the logs for it: `docker compose logs api --tail 100` (the code is the `requestId`) |
+
+## 7. Going to production (HTTPS and access)
+
+The application serves plain HTTP and does **not** terminate TLS. For a real deployment:
+
+- Put it behind a reverse proxy (for example nginx or Caddy) that holds the TLS certificate, and do not publish port 3000 directly.
+- The system has **no login or authorization yet** (TD-28), so do not expose it to the public internet; keep it on an internal network.
+- Never reuse the sample `DB_PASSWORD`; set secrets through the hosting platform's environment settings, not in the repository.
+- Keep the database port unpublished (as in `docker-compose.yml`).
