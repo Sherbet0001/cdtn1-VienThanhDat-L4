@@ -10,7 +10,7 @@ Tự đánh giá cho phiên bản `v1.0`. Mỗi mục: **ĐÃ LÀM / CHƯA LÀM 
 | 4 | Mật khẩu và dữ liệu nhạy cảm được băm hoặc mã hoá | CHƯA LÀM (một phần) | Không có mật khẩu để băm; số điện thoại khách lưu dạng đọc được |
 | 5 | Thông báo lỗi không lộ cấu trúc bên trong | ĐÃ LÀM | `src/middleware/xuLyLoi.js`; ảnh `sec-5a.png`, `sec-5b.png` |
 | 6 | Nhật ký không ghi mật khẩu, token, dữ liệu cá nhân | ĐÃ LÀM | `src/logger.js` che trường nhạy cảm; `tests/logger.test.js`; ảnh `sec-6.png` |
-| 7 | Phụ thuộc được ghim phiên bản, đã kiểm lỗ hổng | ĐÃ LÀM | `package.json` ghim `express 4.21.2`, `pg 8.13.1` + `package-lock.json`; `npm audit`; ảnh `sec-7.png` |
+| 7 | Phụ thuộc được ghim phiên bản, đã kiểm lỗ hổng | ĐÃ LÀM (đã phát hiện và xử lý 4 cảnh báo) | Ghim phiên bản + `package-lock.json`; `npm audit` trước và sau khi nâng `express`; ảnh `sec-7-truoc-khi-sua.png`, `sec-7.png` |
 
 ## 1. Không có secret trong repo — ĐÃ LÀM
 
@@ -36,6 +36,7 @@ Tự đánh giá cho phiên bản `v1.0`. Mỗi mục: **ĐÃ LÀM / CHƯA LÀM 
   git grep -nE "exec\(|execSync|spawn\(|os\.system|shell=True" -- src
   curl.exe -s -X POST http://localhost:3000/api/tickets -H "Content-Type: application/json" -d "{bad json"
   ```
+- Kết quả thực tế (`sec-2.png`): lệnh thứ nhất khớp 2 dòng trong `src/repositories/ticket.repository.js` (dòng 48 và 50). Đây là việc ghép hai hằng số cố định trong mã (`SELECT_PHIEU` và `dieuKien`) vào câu truy vấn; giá trị do người dùng nhập luôn đi qua tham số `$1`, `$2`, `$3`, nên không phải SQL injection. Hai lệnh còn lại không khớp dòng nào (`exit=1`).
 - Minh chứng: `docs/screenshots/sec-2.png`.
 
 ## 3. Kiểm soát truy cập theo chủ sở hữu — KHÔNG ÁP DỤNG
@@ -69,17 +70,16 @@ Hệ thống chưa có đăng nhập, phiên làm việc hay bảng người dù
   curl.exe -s -X POST http://localhost:3000/api/tickets -H "Content-Type: application/json" -d "{\"customer_phone\":\"0901234567\"}"
   docker compose logs api | Select-String -Pattern "password|token|0901234567|change_me"
   ```
+- Kết quả thực tế (`sec-6.png`): `matches: 0`. Lưu ý trung thực: yêu cầu thử này bị từ chối 400 do thiếu các trường bắt buộc nên chưa tạo phiếu; việc che số điện thoại khi ghi log được chứng minh bằng kiểm thử tự động `tests/logger.test.js` (gửi số, mật khẩu, token, chuỗi kết nối vào logger rồi kiểm tra chúng không xuất hiện).
 - Minh chứng: `docs/screenshots/sec-6.png`.
 
 ## 7. Phụ thuộc được ghim và đã kiểm lỗ hổng — ĐÃ LÀM
 
 - `package.json` ghim đúng phiên bản (`express 4.21.2`, `pg 8.13.1`, không dùng `^`); `package-lock.json` được commit; Dockerfile dùng `npm ci --omit=dev`. Chỉ có 2 phụ thuộc chạy thật.
-- Lệnh kiểm tra:
-  ```
-  npm audit --omit=dev
-  ```
-  Ghi kết quả thật vào ảnh `docs/screenshots/sec-7.png`; nếu có cảnh báo, ghi lại mức độ và hướng xử lý bên dưới.
-- Kết quả `npm audit`: _(điền sau khi chạy, đúng như màn hình)_
+- Lệnh kiểm tra: `npm audit --omit=dev`.
+- **Phát hiện (ảnh `sec-7-truoc-khi-sua.png`)**: với `express 4.21.2`, `npm audit` báo 4 lỗ hổng (3 mức high, 1 mức moderate) ở các gói gián tiếp `body-parser`, `path-to-regexp`, `qs`. Cả bốn đều là kiểu từ chối dịch vụ (DoS), không phải lộ dữ liệu.
+- **Xử lý**: nâng `express` lên `4.22.3` (cùng dòng 4.x, vẫn ghim đúng phiên bản), cập nhật `package-lock.json`, chạy lại toàn bộ 127 kiểm thử và `npm audit`.
+- Kết quả `npm audit` sau khi nâng: _(điền theo ảnh `docs/screenshots/sec-7.png`)_
 
 ## Mười nhóm rủi ro OWASP: nhận biết (tóm tắt)
 
