@@ -31,11 +31,38 @@ function kiemTraAnToan(url) {
 const KHOA_DOC = 424242;   // khóa tư vấn: mỗi lần chỉ MỘT tệp test dùng CSDL thử (node --test chạy các tệp song song)
 
 /**
+ * Tạo CSDL thử nếu máy chủ chưa có (kết nối tới CSDL "postgres" của cùng máy chủ).
+ * Cần để `docker compose exec api npm test` chạy được trên máy chỉ vừa dựng xong, không phải tạo tay.
+ * Chỉ được gọi sau kiemTraAnToan(), nên tên luôn kết thúc bằng "_test".
+ */
+async function baoDamCsdlThu(url) {
+  const { Client } = require('pg');
+  const ten = tenCsdl(url);
+  const admin = new URL(url);
+  admin.pathname = '/postgres';
+  const kn = new Client({ connectionString: admin.toString(), connectionTimeoutMillis: 8000 });
+  await kn.connect();
+  try {
+    const co = await kn.query('SELECT 1 FROM pg_database WHERE datname = $1', [ten]);
+    if (co.rowCount === 0) {
+      try {
+        await kn.query(`CREATE DATABASE "${ten.replace(/"/g, '""')}"`);
+      } catch (loi) {
+        if (loi.code !== '42P04') throw loi;   // 42P04: tệp test khác vừa tạo xong (chạy song song)
+      }
+    }
+  } finally {
+    await kn.end();
+  }
+}
+
+/**
  * Tạo pool tới CSDL thử, giữ khóa độc quyền, rồi áp dụng migrations/ (bỏ qua tệp đã chạy).
  * Phải gọi dongPool(pool) ở cuối để nhả khóa.
  */
 async function taoPoolThu() {
   kiemTraAnToan(URL_THU);
+  await baoDamCsdlThu(URL_THU);
   const { Pool } = require('pg');
   const { listSqlFiles, applyFiles } = require('../../src/db/runner');
   const pool = new Pool({ connectionString: URL_THU, max: 4, connectionTimeoutMillis: 8000 });

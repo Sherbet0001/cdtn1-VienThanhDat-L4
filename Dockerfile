@@ -17,6 +17,8 @@ COPY src ./src
 COPY web ./web
 COPY migrations ./migrations
 COPY seeds ./seeds
+# Bộ kiểm thử nằm trong ảnh để chạy được TRONG container: docker compose exec api npm test
+COPY tests ./tests
 USER app
 EXPOSE 3000
 # Docker Compose dựa vào đây để biết api đã sẵn sàng (/health kiểm cả kết nối CSDL)
