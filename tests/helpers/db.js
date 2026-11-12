@@ -28,6 +28,7 @@ function kiemTraAnToan(url) {
   }
 }
 
+const KHOA_TAO_CSDL = 424243;   // khóa tư vấn riêng cho bước tạo CSDL thử
 const KHOA_DOC = 424242;   // khóa tư vấn: mỗi lần chỉ MỘT tệp test dùng CSDL thử (node --test chạy các tệp song song)
 
 /**
@@ -43,13 +44,20 @@ async function baoDamCsdlThu(url) {
   const kn = new Client({ connectionString: admin.toString(), connectionTimeoutMillis: 8000 });
   await kn.connect();
   try {
-    const co = await kn.query('SELECT 1 FROM pg_database WHERE datname = $1', [ten]);
-    if (co.rowCount === 0) {
-      try {
-        await kn.query(`CREATE DATABASE "${ten.replace(/"/g, '""')}"`);
-      } catch (loi) {
-        if (loi.code !== '42P04') throw loi;   // 42P04: tệp test khác vừa tạo xong (chạy song song)
+    // Khóa tư vấn: hai tệp test chạy song song không được cùng CREATE DATABASE (sẽ báo trùng khóa chính của pg_database)
+    await kn.query('SELECT pg_advisory_lock($1)', [KHOA_TAO_CSDL]);
+    try {
+      const co = await kn.query('SELECT 1 FROM pg_database WHERE datname = $1', [ten]);
+      if (co.rowCount === 0) {
+        try {
+          await kn.query(`CREATE DATABASE "${ten.replace(/"/g, '""')}"`);
+        } catch (loi) {
+          // 42P04 = CSDL đã tồn tại; 23505 = trùng khóa duy nhất của pg_database (cùng nguyên nhân, do tạo đồng thời)
+          if (loi.code !== '42P04' && loi.code !== '23505') throw loi;
+        }
       }
+    } finally {
+      await kn.query('SELECT pg_advisory_unlock($1)', [KHOA_TAO_CSDL]);
     }
   } finally {
     await kn.end();
