@@ -10,7 +10,8 @@
     "seed": "node --env-file=.env src/db/runner.js seeds",
     "test": "node --test",
     "tc": "node scripts/chay-tc.js",
-    "kiem-test": "node scripts/kiem-test-that-bai.js"
+    "kiem-test": "node scripts/kiem-test-that-bai.js",
+    "api-vi-du": "node scripts/sinh-vi-du-api.js"
   },
   "engines": {
     "node": ">=20.6 <27"
