@@ -133,7 +133,9 @@ docs/                tài liệu thiết kế
 | `srs.md` | SRS rút gọn (7 User Story, 9 FR, 5 NFR, bảng truy vết) |
 | `usecase.*`, `architecture.*`, `erd.*`, `wireframe.*` | Sơ đồ (`.drawio` mở bằng [diagrams.net](https://app.diagrams.net), kèm ảnh `.png`) |
 | `schema.sql` | DDL PostgreSQL của BT1 (bản đọc; bản chạy là `migrations/001_init.sql`) |
-| `api-contract.md` | Hợp đồng API |
+| `api.md` | API Reference (tiếng Anh): mọi endpoint hiện có, ví dụ lấy từ lần chạy thật; `api-vi-du-chay-that.md` là kết quả thô |
+| `api-contract.md` | Hợp đồng API (thiết kế, gồm cả phần chưa hiện thực) |
+| `checklist-bao-mat.md` | Checklist bảo mật 7 mục kèm minh chứng |
 | `thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế (TD-01 trở đi) |
 | `bang-chung-chay-thuc-te.md` | Kết quả chạy thật: migrate, seed, curl, giao diện |
 | `bang-chung-luong-chinh.md`, `anh/` | Ảnh chụp luồng chính chạy trên dữ liệu thật |
