@@ -79,7 +79,7 @@ Run these in order. On Windows PowerShell type `curl.exe`, not `curl` (in PowerS
 | 2 | `curl.exe -s http://localhost:3000/health` | `{"status":"ok","db":"ok"}` |
 | 3 | `curl.exe -s "http://localhost:3000/api/tickets/unassigned?limit=3"` | JSON with `"total":12` and 3 items in `items` |
 | 4 | Open `http://localhost:3000` in a browser | The ticket list page shows 12 unassigned tickets |
-| 5 | `docker compose exec api npm test` | The summary ends with `tests 127`, `pass 127`, `fail 0`, `skipped 0` |
+| 5 | `docker compose exec api npm test` | The summary ends with `tests 133`, `pass 133`, `fail 0`, `skipped 0` |
 
 If the application opens but a list is empty, the sample data did not load: run `docker compose logs api --tail 50` and look for lines starting with `seeds:`.
 

@@ -150,6 +150,21 @@ Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · 
 7. **Kết quả thực tế:** HTTP 200; dòng KTV vẫn còn trong bảng technician (1 dòng); is_active = false; khớp mong đợi.
 8. **PASS/FAIL:** PASS (ảnh `docs/screenshots/TC-12.png`, chạy bằng `npm run tc -- TC-12`)
 
+## Kiểm thử chèn mã độc (buổi 15)
+
+Bổ sung cho mục 2 của `docs/checklist-bao-mat.md`. Tệp `tests/bao-mat-injection.test.js` (6 test, không cần CSDL) đưa chuỗi tấn công kiểu `' OR '1'='1`, `1 OR 1=1`, `1; DROP TABLE ticket;--` vào số điện thoại, `center_id`, mã trong đường dẫn, `technician_id`, `limit`, `page`, `offset`. Mỗi ca khẳng định phản hồi là 400 `VALIDATION_ERROR` đúng trường, VÀ lớp nghiệp vụ không bao giờ được gọi (dịch vụ giả ném lỗi nếu bị gọi), tức là dữ liệu độc không tới được câu SQL. Chạy riêng: `node --test tests/bao-mat-injection.test.js`.
+
+| Mã | Điểm vào | Kỳ vọng |
+|---|---|---|
+| SEC-01 | `customer_phone` khi POST /api/tickets | 400, field `customer_phone` |
+| SEC-02 | `center_id` ở GET /api/technicians | 400, field `center_id` |
+| SEC-03 | `center_id` ở GET /api/tickets/unassigned | 400, field `center_id` |
+| SEC-04 | mã `id` trong đường dẫn phiếu và kỹ thuật viên | 400, field `id` |
+| SEC-05 | `technician_id` khi phân công | 400, field `technician_id` |
+| SEC-06 | `limit`, `page`, `offset` | 400, đúng field |
+
+Kiểm thử trên hệ thống chạy thật (4 yêu cầu chèn mã, cùng trả 400): `docs/api-vi-du-chay-that.md`, mục 24–27. Tổng số test của dự án sau khi thêm: 133.
+
 ## Kiểm tra test có khả năng thất bại
 
 Tiêu chí 5 của Test Plan: cố tình sửa mã thì ít nhất một test phải chuyển sang FAIL. Lệnh `npm run kiem-test` (`scripts/kiem-test-that-bai.js`) sửa mã ba lần, chạy cả bộ test, rồi khôi phục tệp nguyên vẹn. Chạy ngày 06/11/2026 trên PostgreSQL thật, ảnh `docs/screenshots/kiem-test-that-bai.png`:

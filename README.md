@@ -56,7 +56,7 @@ Chạy kiểm thử (không cần máy chủ; test cần PostgreSQL thật xem m
 npm test
 ```
 
-Kết quả đúng khi chưa có CSDL thử: `# fail 0`, 7 test cần PostgreSQL được bỏ qua (`# skipped 7`); khi đã đặt `TEST_DATABASE_URL`: `# tests 127`, `# pass 127`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
+Kết quả đúng khi chưa có CSDL thử: `# fail 0`, 7 test cần PostgreSQL được bỏ qua (`# skipped 7`); khi đã đặt `TEST_DATABASE_URL`: `# tests 133`, `# pass 133`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
 
 ### Chạy kiểm thử trên PostgreSQL thật (Bài tập 3)
 
@@ -153,7 +153,7 @@ docs/                tài liệu thiết kế
 - [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận, sửa (`PATCH`) và hủy mềm (`DELETE`, TD-26); quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
-- [x] 127 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, hợp đồng, tích hợp, API; 7 test chạy trên PostgreSQL thật qua `TEST_DATABASE_URL`)
+- [x] 133 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, chèn mã độc, hợp đồng, tích hợp, API; 7 test chạy trên PostgreSQL thật qua `TEST_DATABASE_URL`)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [x] Khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
