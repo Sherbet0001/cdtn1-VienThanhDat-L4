@@ -80,6 +80,7 @@ Run these in order. On Windows PowerShell type `curl.exe`, not `curl` (in PowerS
 | 3 | `curl.exe -s "http://localhost:3000/api/tickets/unassigned?limit=3"` | JSON with `"total":12` and 3 items in `items` |
 | 4 | Open `http://localhost:3000` in a browser | The ticket list page shows 12 unassigned tickets |
 | 5 | `docker compose exec api npm test` | The summary ends with `tests 133`, `pass 133`, `fail 0`, `skipped 0` |
+| 6 | `docker compose run --rm api node src/db/runner.js seeds`, then repeat step 3 | The seed runs again without errors (`seeds: xong`) and step 3 still reports `"total":12`: running it twice does not duplicate data |
 
 If the application opens but a list is empty, the sample data did not load: run `docker compose logs api --tail 50` and look for lines starting with `seeds:`.
 
