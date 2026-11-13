@@ -34,8 +34,12 @@
 | TD-16 | Xóa mềm kỹ thuật viên và quy tắc "đang giữ phiếu thì không ngừng hoạt động" | SỬA (bổ sung cho BT2) | `src/services/technician.service.js` |
 | TD-17 | Giữ 6 bảng của ERD; không thêm bảng danh mục từ bộ dữ liệu mẫu | GIỮ NGUYÊN | `migrations/001_init.sql`, `seeds/` |
 | TD-18 | Chưa làm xác thực JWT ở buổi 8 | HOÃN | `src/app.js`, `src/routes/` |
-| TD-28 | Phản hồi BT2: chưa có đăng nhập và phân quyền | GHI NHẬN (chốt ở buổi 15) | `docs/test-plan.md`, `docs/deployment-guide.md` |
+| TD-28 | Phản hồi BT2: chưa có đăng nhập và phân quyền | GHI NHẬN (đã chốt ở buổi 15, giữ nguyên cho BT3) | `docs/test-plan.md`, `docs/deployment-guide.md` |
 | TD-29 | Phản hồi BT2: thông điệp commit chung chung | GIỮ lịch sử, áp quy ước từ nay | quy ước commit |
+| TD-30 | Test chạy được trong container; CSDL thử tự tạo | SỬA (BT3) | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `tests/helpers/db.js` |
+| TD-31 | Gọn `.env.example`: bỏ biến không dùng | SỬA (BT3) | `.env.example` |
+| TD-32 | Nâng `express` 4.21.2 lên 4.22.3 vá 4 cảnh báo `npm audit` | SỬA (BT3) | `package.json`, `package-lock.json` |
+| TD-33 | Tài liệu BT3: Deployment Guide và API Reference tiếng Anh, checklist bảo mật | THÊM (BT3) | `docs/deployment-guide.md`, `docs/api.md`, `docs/checklist-bao-mat.md` |
 
 ## 3. Sau phản hồi Bài tập 1 của giảng viên (17/10/2026)
 
@@ -280,7 +284,7 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 - **Quyết định:** GHI NHẬN, chưa hiện thực trong Bài tập 3. Trong Test Plan, mục đăng nhập/phân quyền/token (OWASP A01, A07) ghi rõ là cố ý không kiểm; trong Test Report và checklist bảo mật ghi "không áp dụng", không ghi "đạt". Deployment Guide nêu rõ hệ thống chưa có xác thực nên chỉ chạy trong mạng nội bộ hoặc máy cục bộ, không mở công khai. Sau buổi 15 (bảo mật API) sẽ đánh giá lại có đủ thời gian làm xác thực tối thiểu (đăng nhập, token có hạn, kiểm vai trò) hay không.
 - **Lý do:** thêm xác thực kéo theo đổi hợp đồng API, `assigned_by` lấy từ token, QT-14, giao diện đăng nhập và bộ test mới; làm vội trước hạn nộp dễ sinh bug bảo mật mới. Báo cáo trung thực về phần chưa làm tốt hơn khẳng định "đã bảo mật".
 - **Ảnh hưởng:** `docs/test-plan.md` (mục 1), `docs/test-report.md`, `docs/deployment-guide.md` và checklist bảo mật (buổi 15); `src/app.js`, `src/routes/` chỉ đổi nếu quyết định làm.
-- **Trạng thái:** Mở. Quyết định cuối chốt ở buổi 15.
+- **Trạng thái:** Đã chốt ở buổi 15 (13/11/2026): giữ ở mức ghi nhận. Checklist bảo mật ghi mục 3 là KHÔNG ÁP DỤNG và mục 4 là CHƯA LÀM (một phần), Deployment Guide cảnh báo chưa mở ra internet, `docs/api.md` ghi rõ mọi endpoint chưa cần token.
 
 ### TD-29 — Thông điệp commit còn chung chung (phản hồi BT2)
 
@@ -290,7 +294,35 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 - **Ảnh hưởng:** quy ước commit từ nay; không đổi mã nguồn.
 - **Trạng thái:** Đã áp dụng cho các commit mới (có thể kiểm bằng `git log --oneline`).
 
-## 9. Điểm còn mở
+## 9. Thay đổi khi làm Bài tập 3 (buổi 14–16, 13/11/2026)
+
+### TD-30 — Test chạy được trong container, CSDL thử tự tạo
+
+- **Nguồn:** phép thử máy trắng của buổi 15: máy chỉ có Docker và Git phải chạy được bộ test mà không cài Node.
+- **Quyết định:** `Dockerfile` chép thư mục `tests/` vào image (bỏ `tests` khỏi `.dockerignore`); `docker-compose.yml` đặt `TEST_DATABASE_URL` trỏ `<DB_NAME>_test`; `tests/helpers/db.js` tự tạo CSDL thử nếu thiếu, dùng khóa tư vấn (advisory lock) để các tệp test chạy song song không cùng tạo.
+- **Lý do:** lần chạy đầu trong container có 4 test lỗi `23505` do hai tiến trình cùng `CREATE DATABASE`; khóa tư vấn và bỏ qua mã `42P04`/`23505` sửa được. Sau đó `docker compose exec api npm test` cho 127 PASS (nay 133 sau khi thêm 6 test chèn mã độc).
+- **Ảnh hưởng:** `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `tests/helpers/db.js`.
+- **Trạng thái:** Đã áp dụng.
+
+### TD-31 — Gọn `.env.example`
+
+- **Quyết định:** bỏ `JWT_SECRET`, `JWT_EXPIRES_IN`, `WORK_START`, `WORK_END`, `APPOINTMENT_MINUTES` vì mã không đọc các biến này (chưa có đăng nhập và đặt lịch); thêm ghi chú nêu rõ không có biến xác thực (TD-18, TD-28).
+- **Lý do:** biến thừa gây hiểu nhầm là hệ thống đã có xác thực; mọi biến còn lại đều được dùng.
+- **Trạng thái:** Đã áp dụng.
+
+### TD-32 — Nâng `express` lên 4.22.3
+
+- **Nguồn:** `npm audit --omit=dev` (checklist bảo mật mục 7) báo 4 lỗ hổng (3 high, 1 moderate) từ `body-parser`, `path-to-regexp`, `qs`, đều kiểu từ chối dịch vụ.
+- **Quyết định:** nâng `express` từ 4.21.2 lên 4.22.3 (cùng dòng 4.x, ghim chính xác), cập nhật `package-lock.json`.
+- **Kết quả:** `npm audit` còn 0 lỗ hổng; 127 test PASS trên bản mới (ảnh `docs/screenshots/sec-7.png`).
+- **Trạng thái:** Đã áp dụng.
+
+### TD-33 — Tài liệu BT3
+
+- **Quyết định:** `docs/deployment-guide.md` viết lại bằng tiếng Anh theo năm mục bắt buộc (bản tiếng Việt của BT1 giữ ở `docs/huong-dan-csdl-bt1.md`); `docs/api.md` (13 endpoint, ví dụ chạy thật bằng `scripts/sinh-vi-du-api.js`); `docs/checklist-bao-mat.md` (7 mục có minh chứng).
+- **Trạng thái:** Đã áp dụng.
+
+## 10. Điểm còn mở
 
 1. PDF BT1 chưa cập nhật Hình 2 (TD-01), DDL (TD-03), các làm rõ ở Mục 4 và mã phiếu (TD-14); `docs/wireframe.png` còn mã phiếu cũ.
 2. Số phiên bản SRS (1.2) và hợp đồng API (1.1) đang lệch; QT-13 (không xóa vật lý) chưa có chỗ truy vết trong bảng.

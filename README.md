@@ -2,7 +2,7 @@
 
 **Sinh viên:** Viên Thành Đạt · **MSSV:** 2374802010107 · **Track:** SE
 **Case study:** Smart CRM – Mekong Mobile
-**Repository:** <https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4>
+**Repository:** <https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4> · **Phiên bản nộp Bài tập 3:** tag `v1.0`
 
 ## 1. Mô tả hệ thống
 
@@ -12,6 +12,10 @@ Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ th
 
 ## 2. Yêu cầu môi trường
 
+**Để chạy hệ thống (cách chính): chỉ cần Docker và Git.** Docker Desktop (hoặc Docker Engine) kèm Docker Compose v2, Git 2.30 trở lên. Không cần cài Node.js hay PostgreSQL. Chi tiết, biến môi trường và cách kiểm tra: [`docs/deployment-guide.md`](docs/deployment-guide.md) (tiếng Anh).
+
+Chỉ khi chạy trực tiếp bằng Node.js để phát triển (mục 3.2):
+
 - **Node.js 20 LTS (tối thiểu 20.6)** và npm (đã thử với Node 22 và Node 26); tệp `.nvmrc` ghi bản 20 (`nvm use`). Cần từ 20.6 vì lệnh khởi động dùng `node --env-file`.
 - **PostgreSQL 13 trở lên** (đã thử với PostgreSQL 16). Từ bản 13, extension `btree_gist` là "trusted" nên chủ sở hữu CSDL tạo được mà không cần quyền siêu người dùng.
 - Công cụ dòng lệnh `psql` (đi kèm PostgreSQL) để tạo người dùng và CSDL lần đầu.
@@ -19,6 +23,22 @@ Hệ thống hỗ trợ trung tâm bảo hành Mekong Mobile phân công kỹ th
 - Biến môi trường: xem `.env.example` (`DATABASE_URL`, `PORT`, `LOG_LEVEL`, ...). Tệp `.env` thật nằm trong `.gitignore`, không commit.
 
 ## 3. Cài đặt và chạy
+
+### 3.1. Chạy bằng Docker (cách chính, hai lệnh)
+
+Cần Docker Desktop (Docker Compose v2) và Git. Hệ thống gồm hai dịch vụ: `db` (PostgreSQL 16) và `api` (máy chủ Node.js, đồng thời phục vụ giao diện web). Sau khi clone phiên bản nộp (`git clone --branch v1.0 https://github.com/Sherbet0001/cdtn1-VienThanhDat-L4.git` rồi `cd` vào thư mục), chạy đúng hai lệnh:
+
+1. `Copy-Item .env.example .env` (Linux/macOS: `cp .env.example .env`)
+2. `docker compose up -d --build`
+
+`api` tự dựng bảng và nạp dữ liệu mẫu khi khởi động (chạy lại không nhân đôi), rồi mở `http://localhost:3000/`. Kiểm tra: `docker compose ps` (cột STATUS của `db` và `api` phải là `healthy`), `curl.exe -s http://localhost:3000/health` (kết quả `{"status":"ok","db":"ok"}`), xem log: `docker compose logs api --tail 20` (mỗi dòng là một JSON có `requestId`). Các bước kiểm chi tiết: mục "Verify it works" của `docs/deployment-guide.md`.
+
+- Nếu cổng 3000 đang bận (ví dụ bạn đang chạy `npm start`), đổi `API_PORT` trong `.env` hoặc tắt tiến trình kia.
+- Làm lại từ con số không (xóa cả dữ liệu): `docker compose down -v` rồi `docker compose up -d --build`.
+- Xem dữ liệu: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`.
+- Chạy kiểm thử ngay trong container (tự tạo CSDL thử `<DB_NAME>_test`): `docker compose exec api npm test`, kết quả đúng `# tests 133`, `# pass 133`, `# fail 0`.
+
+### 3.2. Chạy trực tiếp bằng Node.js (dành cho phát triển)
 
 Chạy từ thư mục gốc repository trong PowerShell. Mỗi bước là một lệnh.
 
@@ -34,19 +54,6 @@ Chạy từ thư mục gốc repository trong PowerShell. Mỗi bước là mộ
 Trên Linux hoặc macOS thay lệnh ở bước 1–2 bằng `sudo -u postgres psql -c "..."`, bước 3 bằng `cp .env.example .env` và bước 8 bằng `xdg-open http://localhost:3000/` (macOS: `open`). Nếu bạn đặt mật khẩu `l4_user` khác `change_me`, sửa cùng mật khẩu đó trong dòng `DATABASE_URL` của `.env` trước bước 5.
 
 Chạy lại được: `npm run migrate` và `npm run seed` chạy lần hai không lỗi và không nhân đôi dữ liệu. Migration ghi các tệp đã chạy vào bảng `schema_migrations` và bỏ qua chúng; seed dùng `ON CONFLICT DO NOTHING`.
-
-### 3.1. Chạy bằng Docker (tùy chọn, không cần cài Node hay PostgreSQL)
-
-Cần Docker Desktop (Docker Compose v2). Hệ thống gồm hai dịch vụ: `db` (PostgreSQL 16) và `api` (máy chủ Node.js, đồng thời phục vụ giao diện web). Hai lệnh, chạy từ thư mục gốc:
-
-1. `Copy-Item .env.example .env` (Linux/macOS: `cp .env.example .env`)
-2. `docker compose up -d --build`
-
-`api` tự dựng bảng và nạp dữ liệu mẫu khi khởi động (chạy lại không nhân đôi), rồi mở `http://localhost:3000/`. Kiểm tra: `docker compose ps` (cột STATUS của `db` và `api` phải là `healthy`), xem log: `docker compose logs api --tail 20` (mỗi dòng là một JSON có `requestId`).
-
-- Nếu cổng 3000 đang bận (ví dụ bạn đang chạy `npm start`), đổi `API_PORT` trong `.env` hoặc tắt tiến trình kia.
-- Làm lại từ con số không (xóa cả dữ liệu): `docker compose down -v` rồi `docker compose up -d --build`.
-- Xem dữ liệu: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`.
 
 ## 4. Kiểm tra hệ thống đã chạy đúng và chạy kiểm thử
 
@@ -143,7 +150,7 @@ docs/                tài liệu thiết kế
 | `screenshots/`, `api.http` | Ảnh chụp kết quả chạy từng test case; yêu cầu mẫu thử API (REST Client) |
 | `deployment-guide.md` | Deployment Guide (tiếng Anh): dựng hệ thống bằng hai lệnh Docker, biến môi trường, dữ liệu mẫu, cách kiểm tra |
 | `huong-dan-csdl-bt1.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc (bản BT1) |
-| `ai-disclosure-Tuan1..3.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md` | Khai báo sử dụng AI |
+| `ai-disclosure-Tuan1..6.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md`, `ai-disclosure-BT2.md`, `ai-disclosure-BT3.md` | Khai báo sử dụng AI (BT1, BT2, BT3) |
 
 ## 6. Trạng thái hiện tại
 
@@ -157,7 +164,7 @@ docs/                tài liệu thiết kế
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [x] Khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
-- [x] Đóng gói Docker: `Dockerfile` nhiều giai đoạn, `docker-compose.yml` (db + api, chờ db healthy), `.dockerignore`; hướng dẫn ở mục 3.1 (TD-27)
+- [x] Đóng gói Docker: `Dockerfile` nhiều giai đoạn, `docker-compose.yml` (db + api, chờ db healthy), `.dockerignore`; hướng dẫn ở mục 3.1 (TD-27); test chạy được trong container (TD-30)
 - [x] Kế hoạch kiểm thử, báo cáo kiểm thử (12 test case chạy thật, có ảnh), nhật ký lỗi (3 lỗi đã sửa, mỗi lỗi một commit) và CI GitHub Actions: `docs/test-plan.md`, `docs/test-report.md`, `docs/bug-log.md`
 - [ ] Chưa hiện thực: đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch
 - [ ] Chưa hiện thực: đăng nhập và phân quyền theo trung tâm (TD-18, TD-28); test đồng thời (TD-08)
