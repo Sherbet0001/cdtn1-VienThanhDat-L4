@@ -8,6 +8,7 @@
  * - Chưa đặt TEST_DATABASE_URL thì các test cần CSDL được BỎ QUA kèm lý do (không im lặng PASS).
  */
 const path = require('node:path');
+const { bamMatKhau } = require('../../src/auth/password');
 
 const URL_THU = process.env.TEST_DATABASE_URL || '';
 const coCsdl = URL_THU !== '';
@@ -90,7 +91,24 @@ async function dongPool(pool) {
 /** Xóa sạch dữ liệu của mọi bảng nghiệp vụ và đặt lại bộ đếm id (giữ nguyên cấu trúc bảng). */
 async function resetDb(pool) {
   await pool.query(
-    'TRUNCATE ticket_status_log, appointment, ticket, technician_skill, technician, customer RESTART IDENTITY CASCADE');
+    'TRUNCATE ticket_status_log, appointment, ticket, technician_skill, technician, customer, app_user RESTART IDENTITY CASCADE');
+}
+
+/** Khóa ký token và mật khẩu dùng chung cho test API; chỉ dành cho CSDL thử, không phải bí mật thật. */
+const BI_MAT_THU = 'khoa-ky-token-chi-dung-trong-kiem-thu-dai-hon-32';
+const MAT_KHAU_THU = 'Mat-khau-thu-123';
+
+/**
+ * Thêm một tài khoản đăng nhập (mật khẩu được BĂM bằng scrypt, tham số hạ thấp cho nhanh; mã đăng nhập thật dùng N=16384).
+ * @param {{username?:string, matKhau?:string, role?:'QUAN_LY'|'QUAN_TRI', center?:number|null}} o
+ * @returns {Promise<number>} user_id
+ */
+async function themNguoiDung(pool, { username = 'admin_thu', matKhau = MAT_KHAU_THU, role = 'QUAN_TRI', center = null } = {}) {
+  const bam = await bamMatKhau(matKhau, { N: 1024, r: 8, p: 1 });
+  const { rows } = await pool.query(
+    'INSERT INTO app_user (username, password_hash, full_name, role, center_id) VALUES ($1, $2, $3, $4, $5) RETURNING user_id',
+    [username, bam, `Người dùng ${username}`, role, center]);
+  return Number(rows[0].user_id);
 }
 
 let demMa = 900000;   // mã phiếu dựng sẵn bắt đầu từ BH-900001 để không đụng mã do API sinh (BH-000001...)
@@ -135,4 +153,5 @@ async function demDong(pool, bang) {
   return rows[0].n;
 }
 
-module.exports = { coCsdl, LY_DO_BO_QUA, taoPoolThu, dongPool, resetDb, themKhach, themKtv, themPhieu, demDong };
+module.exports = { coCsdl, LY_DO_BO_QUA, taoPoolThu, dongPool, resetDb, themKhach, themKtv, themPhieu, demDong,
+  BI_MAT_THU, MAT_KHAU_THU, themNguoiDung };

@@ -9,6 +9,7 @@ const {
 } = require('../validators/technician.validator');
 const { toTechnicianView: toJson } = require('../contracts/technician.contract');
 const { HTTP_THEO_MA, boc } = require('./http');
+const { locTheoTrungTam, chanTheoMa, chanTrungTamTrongThan } = require('../middleware/baoVe');
 
 /** Các hàm xử lý yêu cầu. Tách khỏi Express để kiểm thử được bằng req/res giả. */
 function makeHandlers(service) {
@@ -40,11 +41,12 @@ function technicianRoutes(service) {
   const express = require('express');
   const h = makeHandlers(service);
   const r = express.Router();
-  r.get('/', h.list);
-  r.get('/:id', h.get);
-  r.post('/', h.create);
-  r.put('/:id', h.update);
-  r.delete('/:id', h.remove);
+  // Phân quyền theo trung tâm (QT-14, OWASP A01): quản lý chỉ thấy và sửa kỹ thuật viên của trung tâm mình.
+  r.get('/', locTheoTrungTam, h.list);
+  r.get('/:id', chanTheoMa(service), h.get);
+  r.post('/', chanTrungTamTrongThan, h.create);
+  r.put('/:id', chanTheoMa(service), chanTrungTamTrongThan, h.update);
+  r.delete('/:id', chanTheoMa(service), h.remove);
   return r;
 }
 

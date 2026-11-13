@@ -3,17 +3,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
-const { coCsdl, LY_DO_BO_QUA, taoPoolThu, dongPool, resetDb, themKtv, demDong } = require('../helpers/db');
+const { coCsdl, LY_DO_BO_QUA, taoPoolThu, dongPool, resetDb, themKtv, demDong, BI_MAT_THU, MAT_KHAU_THU, themNguoiDung } = require('../helpers/db');
 
 const opts = { skip: coCsdl ? false : LY_DO_BO_QUA };
 
-let pool; let server; let goc;
+let pool; let server; let goc; let tokenQuanTri;
 test.before(async () => {
   if (!coCsdl) return;
   const { buildApp } = require('../../src/app');
   const { taoLogger } = require('../../src/logger');
   pool = await taoPoolThu();
-  const app = buildApp(pool, { logger: taoLogger({ level: 'error', write: () => {} }) });
+  const app = buildApp(pool, { logger: taoLogger({ level: 'error', write: () => {} }), jwtSecret: BI_MAT_THU });
   server = http.createServer(app);
   await new Promise((xong) => server.listen(0, '127.0.0.1', xong));
   goc = `http://127.0.0.1:${server.address().port}`;
@@ -22,12 +22,21 @@ test.after(async () => {
   if (server) { server.closeAllConnections(); await new Promise((xong) => server.close(xong)); }
   if (pool) await dongPool(pool);
 });
-test.beforeEach(async () => { if (pool) await resetDb(pool); });
+// Từ buổi 16 mọi đường /api (trừ đăng nhập) cần token (TD-34): mỗi test đăng nhập thật bằng tài khoản quản trị vừa dựng.
+test.beforeEach(async () => {
+  if (!pool) return;
+  await resetDb(pool);
+  await themNguoiDung(pool, { username: 'admin_thu', role: 'QUAN_TRI' });
+  const r = await fetch(`${goc}/api/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'admin_thu', password: MAT_KHAU_THU }) });
+  tokenQuanTri = (await r.json()).token;
+});
 
-const goi = async (phuongThuc, duongDan, thanBody) => {
+const goi = async (phuongThuc, duongDan, thanBody, token = tokenQuanTri) => {
   const res = await fetch(goc + duongDan, {
     method: phuongThuc,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: thanBody === undefined ? undefined : JSON.stringify(thanBody),
   });
   return { status: res.status, body: await res.json() };

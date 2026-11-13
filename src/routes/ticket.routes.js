@@ -6,6 +6,7 @@ const {
 const { validateId } = require('../validators/technician.validator');
 const { toTicketView, toEligibleView, toAssignmentView } = require('../contracts/ticket.contract');
 const { boc } = require('./http');
+const { locTheoTrungTam, chanTheoMa, chanTrungTamTrongThan } = require('../middleware/baoVe');
 
 /** Các hàm xử lý yêu cầu; tách khỏi Express để kiểm thử bằng req/res giả. */
 function makeHandlers(service) {
@@ -35,7 +36,7 @@ function makeHandlers(service) {
       const { phieu, ktvs } = await service.listEligible(validateId(req.params.id));
       res.json(toEligibleView(phieu, ktvs));
     }),
-    // req.user do middleware đăng nhập đặt (TD-18); chưa đăng nhập thì mã người thực hiện là 0.
+    // req.user do middleware xác thực đặt (TD-34): assigned_by là mã người đang đăng nhập; 0 chỉ xảy ra khi gọi hàm xử lý trực tiếp trong test.
     assign: boc(async (req, res) => {
       const ticketId = validateId(req.params.id);
       const technicianId = validateAssignment(req.body);
@@ -49,13 +50,15 @@ function ticketRoutes(service) {
   const express = require('express');
   const h = makeHandlers(service);
   const r = express.Router();
-  r.get('/unassigned', h.unassigned);   // đặt TRƯỚC /:id để "unassigned" không bị hiểu là mã phiếu
-  r.get('/:id', h.get);
-  r.post('/', h.create);
-  r.patch('/:id', h.update);
-  r.delete('/:id', h.remove);
-  r.get('/:id/eligible-technicians', h.eligible);
-  r.post('/:id/assignment', h.assign);
+  // Phân quyền theo trung tâm (QT-14, OWASP A01): quản lý chỉ thao tác trên phiếu của trung tâm mình, quản trị mọi nơi.
+  const cungTrungTam = chanTheoMa(service);
+  r.get('/unassigned', locTheoTrungTam, h.unassigned);   // đặt TRƯỚC /:id để "unassigned" không bị hiểu là mã phiếu
+  r.get('/:id', cungTrungTam, h.get);
+  r.post('/', chanTrungTamTrongThan, h.create);
+  r.patch('/:id', cungTrungTam, h.update);
+  r.delete('/:id', cungTrungTam, h.remove);
+  r.get('/:id/eligible-technicians', cungTrungTam, h.eligible);
+  r.post('/:id/assignment', cungTrungTam, h.assign);
   return r;
 }
 

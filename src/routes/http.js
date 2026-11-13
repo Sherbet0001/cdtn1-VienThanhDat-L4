@@ -12,6 +12,10 @@ const HTTP_THEO_MA = Object.freeze({
   TICKET_NOT_EDITABLE: 409,           // chỉ sửa được phiếu MOI
   TICKET_NOT_CANCELLABLE: 409,        // chỉ hủy được phiếu MOI hoặc DA_PHAN_CONG
   TECH_NOT_ELIGIBLE: 400,             // vi phạm QT-08: dữ liệu chọn sai, theo hợp đồng API mục 2.3
+  UNAUTHENTICATED: 401,               // thiếu token, token sai hoặc hết hạn (TD-34)
+  INVALID_CREDENTIALS: 401,           // sai tên đăng nhập hoặc mật khẩu (cùng một thông điệp cho mọi nguyên nhân)
+  FORBIDDEN: 403,                     // đã đăng nhập nhưng dữ liệu thuộc trung tâm khác (QT-14, OWASP A01)
+  TOO_MANY_REQUESTS: 429,             // đăng nhập sai quá nhiều lần (OWASP A07)
 });
 
 /** Lỗi đã biết -> thân JSON của khung lỗi. */

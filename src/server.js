@@ -11,13 +11,18 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  logger.error('Thiếu JWT_SECRET hoặc quá ngắn (cần ít nhất 32 ký tự). Xem .env.example.');
+  process.exit(1);
+}
+
 const pool = taoPool(Pool, {
   connectionString: process.env.DATABASE_URL,
   max: Number(process.env.DB_POOL_MAX || 10),
 }, logger);
 
 const port = Number(process.env.PORT || 3000);
-const server = buildApp(pool, { logger }).listen(port, () => {
+const server = buildApp(pool, { logger, jwtSecret: process.env.JWT_SECRET, tokenTtlGiay: Number(process.env.JWT_TTL_SECONDS || 3600) }).listen(port, () => {
   logger.info('máy chủ đã khởi động', { port, url: `http://localhost:${port}` });
 });
 

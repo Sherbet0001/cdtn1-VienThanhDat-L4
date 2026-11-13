@@ -19,6 +19,8 @@ COPY migrations ./migrations
 COPY seeds ./seeds
 # Bộ kiểm thử nằm trong ảnh để chạy được TRONG container: docker compose exec api npm test
 COPY tests ./tests
+# Script chạy riêng một test case: docker compose exec api npm run tc -- TC-05
+COPY scripts/chay-tc.js ./scripts/chay-tc.js
 USER app
 EXPOSE 3000
 # Docker Compose dựa vào đây để biết api đã sẵn sàng (/health kiểm cả kết nối CSDL)

@@ -5,6 +5,7 @@ node_modules
 !.env.example
 docs
 data
-scripts
+scripts/*
+!scripts/chay-tc.js
 *.zip
 npm-debug.log*

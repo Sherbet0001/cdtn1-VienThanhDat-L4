@@ -150,7 +150,7 @@ docs/                tài liệu thiết kế
 | `screenshots/`, `api.http` | Ảnh chụp kết quả chạy từng test case; yêu cầu mẫu thử API (REST Client) |
 | `deployment-guide.md` | Deployment Guide (tiếng Anh): dựng hệ thống bằng hai lệnh Docker, biến môi trường, dữ liệu mẫu, cách kiểm tra |
 | `huong-dan-csdl-bt1.md` | Hướng dẫn dựng CSDL và bộ kiểm tra nhanh các ràng buộc (bản BT1) |
-| `ai-disclosure-Tuan1..6.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md`, `ai-disclosure-BT2.md`, `ai-disclosure-BT3.md` | Khai báo sử dụng AI (BT1, BT2, BT3) |
+| `ai-disclosure-Tuan1..6.md`, `ai-disclosure-BT1-SauKhiSuaLoi.md`, `ai-disclosure-BT2.md`, `ai-disclosure.md` (bản BT3) | Khai báo sử dụng AI (BT1, BT2, BT3) |
 
 ## 6. Trạng thái hiện tại
 

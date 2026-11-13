@@ -1,5 +1,5 @@
 // Màn hình 3: tiếp nhận phiếu mới (tạo phiếu ở trạng thái Mới để đưa vào luồng phân công). Hợp đồng: api-contract mục 2.9.
-import { ApiError } from '../api/client.js';
+import { ApiError, layPhien } from '../api/client.js';
 import { createTicket } from '../api/tickets.api.js';
 import { h } from '../components/dom.js';
 import { NHAN_NHOM_LOI, NHAN_UU_TIEN, ngayGio } from '../lib/dinhDang.js';
@@ -17,13 +17,16 @@ const chon = (cacMuc, macDinh) => h('select', {}, ...(macDinh ? [h('option', { v
   ...cacMuc.map(([giaTri, chu]) => h('option', { value: giaTri }, chu)));
 
 export function trangTiepNhan(goc) {
+  // Quản lý chỉ tiếp nhận được ở trung tâm của mình (máy chủ cũng kiểm lại, QT-14); quản trị chọn được mọi trung tâm.
+  const nguoi = layPhien()?.user;
+  const cacTrungTam = nguoi && nguoi.role === 'QUAN_LY' && nguoi.center_id ? [nguoi.center_id] : [1, 2, 3, 4, 5, 6];
   const o = {
     customer_name: truong('customer_name', 'Họ tên khách hàng', h('input', { type: 'text', maxLength: 100, autocomplete: 'off' })),
     customer_phone: truong('customer_phone', 'Số điện thoại (090…, +84…)', h('input', { type: 'text', inputMode: 'tel', autocomplete: 'off' })),
     device_name: truong('device_name', 'Thiết bị', h('input', { type: 'text', maxLength: 100, autocomplete: 'off' })),
     issue_category: truong('issue_category', 'Nhóm sự cố', chon(Object.entries(NHAN_NHOM_LOI), '— Chọn nhóm sự cố —')),
     priority: truong('priority', 'Mức ưu tiên', chon(Object.entries(NHAN_UU_TIEN), 'Theo nhóm sự cố (mặc định)')),
-    center_id: truong('center_id', 'Trung tâm nhận', chon([1, 2, 3, 4, 5, 6].map((n) => [String(n), `Trung tâm ${n}`]), '— Chọn trung tâm —')),
+    center_id: truong('center_id', 'Trung tâm nhận', chon(cacTrungTam.map((n) => [String(n), `Trung tâm ${n}`]), cacTrungTam.length > 1 ? '— Chọn trung tâm —' : '')),
   };
   const ketQua = h('div', { role: 'status' });
   const nut = h('button', { type: 'submit' }, 'Tiếp nhận phiếu');
