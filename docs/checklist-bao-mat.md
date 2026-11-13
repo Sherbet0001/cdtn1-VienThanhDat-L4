@@ -79,7 +79,7 @@ Hệ thống chưa có đăng nhập, phiên làm việc hay bảng người dù
 - Lệnh kiểm tra: `npm audit --omit=dev`.
 - **Phát hiện (ảnh `sec-7-truoc-khi-sua.png`)**: với `express 4.21.2`, `npm audit` báo 4 lỗ hổng (3 mức high, 1 mức moderate) ở các gói gián tiếp `body-parser`, `path-to-regexp`, `qs`. Cả bốn đều là kiểu từ chối dịch vụ (DoS), không phải lộ dữ liệu.
 - **Xử lý**: nâng `express` lên `4.22.3` (cùng dòng 4.x, vẫn ghim đúng phiên bản), cập nhật `package-lock.json`, chạy lại toàn bộ 127 kiểm thử và `npm audit`.
-- Kết quả `npm audit` sau khi nâng: _(điền theo ảnh `docs/screenshots/sec-7.png`)_
+- Kết quả `npm audit --omit=dev` sau khi nâng `express` lên 4.22.3: `found 0 vulnerabilities` (ảnh `docs/screenshots/sec-7.png`, chụp cả lúc trước và sau khi nâng).
 
 ## Mười nhóm rủi ro OWASP: nhận biết (tóm tắt)
 
