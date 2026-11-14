@@ -7,18 +7,22 @@ REST API over HTTP, JSON bodies, `snake_case` field names. This document covers 
 | Topic | Rule |
 |---|---|
 | Base URL | `http://localhost:3000` (set by `API_PORT`, see the [Deployment Guide](deployment-guide.md)) |
-| Authentication | **None in v1.0.** Every endpoint is open; the system has no login or roles (TD-18, TD-28). Do not expose it to the public internet. Because there is no user, `assigned_by` in assignment results is always `0`. |
+| Authentication | `POST /api/auth/login` returns a signed token (JWT, HS256, valid 1 hour by default). Send it as `Authorization: Bearer <token>` on **every** `/api` endpoint except login; `/health` is public. The examples below omit the header for brevity. |
+| Access control | Two roles: `QUAN_TRI` (all centers) and `QUAN_LY` (one center). See [Access control](#access-control). `assigned_by` in assignment results is the id of the signed-in user. |
 | Content type | Requests with a body use `Content-Type: application/json` (max 256 KB). |
 | Errors | One envelope for all errors: `{"error": {"code", "message", "field?", "fields?", "details?"}}`. `fields` lists every invalid field as `{field, reason}`. 5xx responses carry only a generic message and a `requestId` for log lookup. |
 | Dates | ISO 8601 with the Vietnam offset, e.g. `2026-11-13T11:20:18+07:00`. |
 | Pagination | Technicians: `limit` (1–100, default 20) and `offset` (default 0). Tickets: `page` (from 1) and `limit` (1–100, default 20). |
-| Customer phone | `customer_phone` is returned in full (no roles exist to apply the masking rule QT-15). Logs always mask it. |
+| Customer phone | `customer_phone` is returned in full to signed-in users (masking by role, QT-15, is not implemented). Logs always mask it. |
 
 ### Error codes
 
 | Code | HTTP | Meaning |
 |---|---|---|
 | `VALIDATION_ERROR` | 400 | Malformed input: wrong type, missing field, bad id, invalid JSON |
+| `UNAUTHENTICATED` | 401 | Missing, malformed, tampered or expired token (one message for every cause) |
+| `INVALID_CREDENTIALS` | 401 | Wrong username or password (same message whether or not the username exists) |
+| `FORBIDDEN` | 403 | Signed in, but the data belongs to another center |
 | `TECH_NOT_ELIGIBLE` | 400 | Chosen technician breaks the assignment rules (QT-08) |
 | `TECHNICIAN_NOT_FOUND` | 404 | No technician with that id |
 | `TICKET_NOT_FOUND` | 404 | No ticket with that id |
@@ -27,6 +31,7 @@ REST API over HTTP, JSON bodies, `snake_case` field names. This document covers 
 | `TICKET_NOT_CANCELLABLE` | 409 | Only `MOI` or `DA_PHAN_CONG` tickets can be cancelled |
 | `TECHNICIAN_HAS_OPEN_TICKETS` | 409 | Cannot deactivate a technician who still holds unfinished tickets |
 | `PAYLOAD_TOO_LARGE` | 413 | Body larger than 256 KB |
+| `TOO_MANY_REQUESTS` | 429 | 10 failed logins within 5 minutes for the same address and username; wait for `Retry-After` seconds |
 | `INTERNAL_ERROR` | 500 | Unexpected server error (details only in the logs) |
 | `SERVICE_UNAVAILABLE` | 503 | Database not reachable |
 
@@ -54,6 +59,7 @@ REST API over HTTP, JSON bodies, `snake_case` field names. This document covers 
 | 11 | `POST /api/tickets` | Create a ticket |
 | 12 | `PATCH /api/tickets/{id}` | Edit an unassigned ticket |
 | 13 | `DELETE /api/tickets/{id}` | Cancel a ticket (soft delete) |
+| 14 | `POST /api/auth/login` | Sign in and get a token (public) |
 
 Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not implemented in v1.0**: reassignment (FR5), the technician task list (FR6) and appointments (FR7–FR9).
 
@@ -62,7 +68,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 1. GET /health
 
 1. **Purpose:** tells Docker and operators whether the API and its database are up.
-2. **Authentication:** none.
+2. **Authentication:** none (public, so Docker and monitoring can call it).
 3. **Parameters:** none.
 4. **Request example:** `curl.exe -s http://localhost:3000/health`
 5. **Success response (200):**
@@ -75,7 +81,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 2. GET /api/technicians
 
 1. **Purpose:** list technicians, optionally filtered.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Query parameters:** `center_id` (positive integer), `is_active` (`true`/`false`), `limit` (1–100, default 20), `offset` (≥ 0, default 0).
 4. **Request example:** `GET /api/technicians?limit=2`
 5. **Success response (200):**
@@ -95,7 +101,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 3. GET /api/technicians/{id}
 
 1. **Purpose:** one technician with their skills.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id` — positive integer.
 4. **Request example:** `GET /api/technicians/1`
 5. **Success response (200):**
@@ -122,7 +128,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 4. POST /api/technicians
 
 1. **Purpose:** create a technician.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Body:** `full_name` (1–100 chars, required), `center_id` (positive integer, required), `level` (enum, required), `is_active` (boolean, default `true`).
 4. **Request example:**
    ```json
@@ -152,7 +158,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 5. PUT /api/technicians/{id}
 
 1. **Purpose:** replace all fields of a technician.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`. **Body:** same fields as `POST /api/technicians`.
 4. **Request example:** `PUT /api/technicians/39`
    ```json
@@ -168,7 +174,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 6. DELETE /api/technicians/{id}
 
 1. **Purpose:** deactivate a technician (soft delete; the row stays so ticket history is kept, TD-16).
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`. No body.
 4. **Request example:** `DELETE /api/technicians/39`
 5. **Success response (200):** the technician with `"is_active": false`:
@@ -191,7 +197,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 7. GET /api/tickets/unassigned
 
 1. **Purpose:** the work queue: tickets in status `MOI` with no technician.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Query parameters:** `page` (≥ 1, default 1), `limit` (1–100, default 20), `center_id` (positive integer, optional).
 4. **Request example:** `GET /api/tickets/unassigned?limit=2`
 5. **Success response (200):** `total` is the number of matching tickets, `items` the current page (second item shortened here, full text in the raw examples file):
@@ -226,7 +232,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 8. GET /api/tickets/{id}
 
 1. **Purpose:** one ticket.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id` — positive integer.
 4. **Request example:** `GET /api/tickets/6924`
 5. **Success response (200):** the ticket object shown under endpoint 7 (`ticket_id` 6924).
@@ -239,7 +245,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 9. GET /api/tickets/{id}/eligible-technicians
 
 1. **Purpose:** technicians who may take this ticket: same service center, active, and proficiency ≥ 3 in the ticket's issue category (QT-08). Each entry shows the current workload.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`.
 4. **Request example:** `GET /api/tickets/6924/eligible-technicians`
 5. **Success response (200):**
@@ -260,7 +266,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 10. POST /api/tickets/{id}/assignment
 
 1. **Purpose:** assign one technician to a ticket. The ticket moves from `MOI` to `DA_PHAN_CONG` and the change is written to the status log (QT-06, QT-07).
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`. **Body:** `technician_id` (positive integer, required).
 4. **Request example:** `POST /api/tickets/6924/assignment`
    ```json
@@ -274,7 +280,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
      "status": "DA_PHAN_CONG",
      "technician_id": 17,
      "assigned_at": "2026-11-13T11:20:18+07:00",
-     "assigned_by": 0
+     "assigned_by": 1
    }
    ```
 6. **Errors:**
@@ -300,7 +306,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 11. POST /api/tickets
 
 1. **Purpose:** receive a new warranty ticket.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Body:** `customer_name` (1–100 chars), `customer_phone` (10 digits starting with 0, or `+84…`; normalised on save, QT-02), `device_name` (1–100 chars), `issue_category` (enum), `center_id` (positive integer), all required; `priority` (enum, optional — defaults from the issue category).
 4. **Request example:**
    ```json
@@ -341,7 +347,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 12. PATCH /api/tickets/{id}
 
 1. **Purpose:** edit a ticket that has not been assigned yet.
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`. **Body:** at least one of `device_name`, `issue_category`, `priority`. Any other field (such as `status` or `technician_id`) is rejected, not ignored.
 4. **Request example:** `PATCH /api/tickets/7801`
    ```json
@@ -354,7 +360,7 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 ## 13. DELETE /api/tickets/{id}
 
 1. **Purpose:** cancel a ticket (soft delete: the row and its history remain, QT-13).
-2. **Authentication:** none.
+2. **Authentication:** `Authorization: Bearer <token>` required (401 `UNAUTHENTICATED` without it). Access is limited by center: see [Access control](#access-control).
 3. **Path parameter:** `id`. **Body (optional):** `reason` (string up to 255 chars, default `Hủy theo yêu cầu`).
 4. **Request example:** `DELETE /api/tickets/7801`
    ```json
@@ -364,8 +370,45 @@ Planned in the design contract ([`api-contract.md`](api-contract.md)) but **not 
 6. **Errors:** 400 `VALIDATION_ERROR`; 404 `TICKET_NOT_FOUND`; 409 `TICKET_NOT_CANCELLABLE` (only `MOI` or `DA_PHAN_CONG` tickets).
 7. **Notes:** a cancelled ticket no longer appears in `GET /api/tickets/unassigned`.
 
+## 14. POST /api/auth/login
+
+1. **Purpose:** exchange a username and password for a token.
+2. **Authentication:** none (public). Failed attempts are rate-limited.
+3. **Body:** `username` (string, 1–50), `password` (string, 1–128), both required.
+4. **Request example:** `POST /api/auth/login`
+   ```json
+   { "username": "admin", "password": "Mekong@2026" }
+   ```
+   The sample accounts and their shared sample password are listed in the [Deployment Guide](deployment-guide.md). They are demo data, stored only as scrypt hashes.
+5. **Success response (200):**
+   ```json
+   {
+     "token": "<signed JWT>",
+     "token_type": "Bearer",
+     "expires_in": 3600,
+     "user": { "user_id": 1, "username": "admin", "full_name": "...", "role": "QUAN_TRI", "center_id": null }
+   }
+   ```
+6. **Errors:**
+   - 400 `VALIDATION_ERROR` — missing or oversized `username` or `password`.
+   - 401 `INVALID_CREDENTIALS` — wrong password, unknown username or inactive account, always `{"error":{"code":"INVALID_CREDENTIALS","message":"Tên đăng nhập hoặc mật khẩu không đúng."}}`.
+   - 429 `TOO_MANY_REQUESTS` — with a `Retry-After` header.
+7. **Notes:** passwords are stored as scrypt hashes with a random salt per account. The token carries the user id, role and center; the server rejects tokens signed with another algorithm (including `none`), tampered or expired tokens.
+
+## Access control
+
+| Role | Center | May do |
+|---|---|---|
+| `QUAN_TRI` | all (`center_id` is `null`) | read and change data of every center |
+| `QUAN_LY` | exactly one | read and change only tickets and technicians of that center |
+
+- Default deny: every `/api` route except login needs a valid token.
+- A `QUAN_LY` asking for another center's ticket or technician by id gets **403 `FORBIDDEN`** (and no data); a nonexistent id gets 404.
+- List endpoints are forced to the user's own center; asking for another center with `center_id` gives 403. Creating or editing with another center's `center_id` gives 403; omitting `center_id` defaults to the user's own center.
+- Test evidence: TC-13 (`tests/bt3/auth.test.js`, OWASP A01) in [`test-report.md`](test-report.md).
+
 ---
 
 ## Injection checks
 
-Four injection attempts were sent to the live API (items 24–27 of [`api-vi-du-chay-that.md`](api-vi-du-chay-that.md)): `' OR '1'='1` in `customer_phone`, in `center_id` of both list endpoints, and `1 OR 1=1` as a ticket id. All returned **400 `VALIDATION_ERROR`** and no data. Queries use bound parameters (`$1`, `$2`) throughout; see [`checklist-bao-mat.md`](checklist-bao-mat.md), item 2.
+Four injection attempts were sent to the live API (the four "Chèn SQL…" items at the end of [`api-vi-du-chay-that.md`](api-vi-du-chay-that.md)): `' OR '1'='1` in `customer_phone`, in `center_id` of both list endpoints, and `1 OR 1=1` as a ticket id. All returned **400 `VALIDATION_ERROR`** and no data. Queries use bound parameters (`$1`, `$2`) throughout; see [`checklist-bao-mat.md`](checklist-bao-mat.md), item 2.

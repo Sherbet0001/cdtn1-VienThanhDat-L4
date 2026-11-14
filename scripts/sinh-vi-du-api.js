@@ -4,6 +4,7 @@
  * Dùng để lấy ví dụ cho docs/api.md (không viết tay). Không cần thư viện ngoài (Node >= 20, có sẵn fetch).
  * Chạy:  node scripts/sinh-vi-du-api.js            (mặc định http://localhost:3000)
  *        node scripts/sinh-vi-du-api.js http://localhost:3001
+ * Script đăng nhập bằng tài khoản mẫu `admin` (xem seeds/005_app_users.sql); đổi mật khẩu bằng biến môi trường MAT_KHAU_MAU.
  * LƯU Ý: script tạo và đổi dữ liệu thử (1 KTV, 1 phiếu, 1 phân công). Sau khi chạy nên đặt lại:
  *        docker compose down -v && docker compose up -d --build
  */
@@ -14,10 +15,14 @@ const GOC = (process.argv[2] || 'http://localhost:3000').replace(/\/$/, '');
 const RA = path.join(__dirname, '..', 'docs', 'api-vi-du-chay-that.md');
 const nhat = [];
 let dem = 0;
+let token = null;   // token đăng nhập; mọi lệnh gọi sau khi đăng nhập đều kèm Authorization: Bearer
+const che = (b) => (b && typeof b === 'object' && b.token ? { ...b, token: b.token.slice(0, 20) + '…(rút gọn)' } : b);
 
-/** Gọi API, ghi nhật ký, trả { status, body }. */
-async function goi(tieuDe, phuongThuc, duong, body) {
+/** Gọi API, ghi nhật ký, trả { status, body }. `dungToken` = false để gọi KHÔNG kèm token (thử 401), hoặc chuỗi token khác. */
+async function goi(tieuDe, phuongThuc, duong, body, dungToken = true) {
   const tuyChon = { method: phuongThuc, headers: {} };
+  const tokenDung = dungToken === true ? token : dungToken;
+  if (tokenDung) tuyChon.headers.Authorization = `Bearer ${tokenDung}`;
   if (body !== undefined) {
     tuyChon.headers['Content-Type'] = 'application/json';
     tuyChon.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -30,20 +35,34 @@ async function goi(tieuDe, phuongThuc, duong, body) {
   nhat.push([
     `### ${dem}. ${tieuDe}`, '',
     '```http', `${phuongThuc} ${duong}`,
+    ...(tokenDung ? ['Authorization: Bearer <token>'] : []),
     ...(body !== undefined ? ['Content-Type: application/json', '', typeof body === 'string' ? body : JSON.stringify(body, null, 2)] : []),
     '```', '',
     `Phản hồi: **${r.status}**`, '',
-    '```json', json ? JSON.stringify(json, null, 2) : chu, '```', '',
+    '```json', json ? JSON.stringify(che(json), null, 2) : chu, '```', '',
   ].join('\n'));
   console.log(`${String(dem).padStart(2)}. ${r.status} ${phuongThuc} ${duong}`);
   return { status: r.status, body: json };
 }
 
 (async () => {
-  await goi('Kiểm tra sức khỏe', 'GET', '/health');
+  await goi('Kiểm tra sức khỏe (công khai)', 'GET', '/health');
+
+  // ---- Đăng nhập và các lỗi truy cập ----
+  const MK = process.env.MAT_KHAU_MAU || 'Mekong@2026';   // mật khẩu của tài khoản mẫu trong seeds/005_app_users.sql (dữ liệu mẫu, không phải bí mật)
+  await goi('Lỗi: gọi API khi chưa đăng nhập', 'GET', '/api/technicians?limit=1', undefined, false);
+  await goi('Lỗi: đăng nhập sai mật khẩu', 'POST', '/api/auth/login', { username: 'admin', password: 'sai-mat-khau' }, false);
+  await goi('Lỗi: đăng nhập tên không tồn tại (cùng thông điệp với sai mật khẩu)', 'POST', '/api/auth/login', { username: 'khong_co_ai', password: 'sai-mat-khau' }, false);
+  const dn = await goi('Đăng nhập (quản trị)', 'POST', '/api/auth/login', { username: 'admin', password: MK }, false);
+  token = dn.body.token;
+  const dnQl = await fetch(GOC + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'quanly_tt1', password: MK }) });
+  const tokenQl = (await dnQl.json()).token;
+  await goi('Lỗi: quản lý trung tâm 1 xem kỹ thuật viên của trung tâm 2 (403)', 'GET', '/api/technicians?center_id=2', undefined, tokenQl);
 
   // ---- Kỹ thuật viên ----
   const dsKtv = await goi('Danh sách kỹ thuật viên (lọc theo trung tâm, phân trang)', 'GET', '/api/technicians?limit=2');
+  if (!dsKtv.body || !dsKtv.body.items) throw new Error('Không lấy được danh sách: kiểm tra đã nạp seeds/005 và mật khẩu mẫu (biến MAT_KHAU_MAU).');
   const ktv1 = dsKtv.body.items[0];
   await goi('Chi tiết một kỹ thuật viên (kèm kỹ năng)', 'GET', `/api/technicians/${ktv1.technician_id}`);
   const moi = await goi('Tạo kỹ thuật viên', 'POST', '/api/technicians',

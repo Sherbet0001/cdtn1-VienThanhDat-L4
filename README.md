@@ -20,7 +20,7 @@ Chỉ khi chạy trực tiếp bằng Node.js để phát triển (mục 3.2):
 - **PostgreSQL 13 trở lên** (đã thử với PostgreSQL 16). Từ bản 13, extension `btree_gist` là "trusted" nên chủ sở hữu CSDL tạo được mà không cần quyền siêu người dùng.
 - Công cụ dòng lệnh `psql` (đi kèm PostgreSQL) để tạo người dùng và CSDL lần đầu.
 - `curl.exe` để gọi thử API (có sẵn trên Windows 10 trở lên). Trên Windows hãy gõ `curl.exe`, không gõ `curl`, vì `curl` trong PowerShell là lệnh khác.
-- Biến môi trường: xem `.env.example` (`DATABASE_URL`, `PORT`, `LOG_LEVEL`, ...). Tệp `.env` thật nằm trong `.gitignore`, không commit.
+- Biến môi trường: xem `.env.example` (`DATABASE_URL`, `PORT`, `LOG_LEVEL`, `JWT_SECRET`, ...). Tệp `.env` thật nằm trong `.gitignore`, không commit.
 
 ## 3. Cài đặt và chạy
 
@@ -31,12 +31,12 @@ Cần Docker Desktop (Docker Compose v2) và Git. Hệ thống gồm hai dịch 
 1. `Copy-Item .env.example .env` (Linux/macOS: `cp .env.example .env`)
 2. `docker compose up -d --build`
 
-`api` tự dựng bảng và nạp dữ liệu mẫu khi khởi động (chạy lại không nhân đôi), rồi mở `http://localhost:3000/`. Kiểm tra: `docker compose ps` (cột STATUS của `db` và `api` phải là `healthy`), `curl.exe -s http://localhost:3000/health` (kết quả `{"status":"ok","db":"ok"}`), xem log: `docker compose logs api --tail 20` (mỗi dòng là một JSON có `requestId`). Các bước kiểm chi tiết: mục "Verify it works" của `docs/deployment-guide.md`.
+`api` tự dựng bảng và nạp dữ liệu mẫu khi khởi động (chạy lại không nhân đôi), rồi mở `http://localhost:3000/`, màn hình đăng nhập hiện ra. Tài khoản mẫu (dữ liệu mẫu, trong repo chỉ có chuỗi băm): `admin` (thấy mọi trung tâm) và `quanly_tt1` … `quanly_tt6` (chỉ thấy một trung tâm), mật khẩu chung `Mekong@2026`. `JWT_SECRET` (khóa ký token, ≥ 32 ký tự) là biến bắt buộc: `.env.example` có sẵn giá trị mẫu, phải đổi khi triển khai thật. Kiểm tra: `docker compose ps` (cột STATUS của `db` và `api` phải là `healthy`), `curl.exe -s http://localhost:3000/health` (kết quả `{"status":"ok","db":"ok"}`), xem log: `docker compose logs api --tail 20` (mỗi dòng là một JSON có `requestId`). Các bước kiểm chi tiết: mục "Verify it works" của `docs/deployment-guide.md`.
 
 - Nếu cổng 3000 đang bận (ví dụ bạn đang chạy `npm start`), đổi `API_PORT` trong `.env` hoặc tắt tiến trình kia.
 - Làm lại từ con số không (xóa cả dữ liệu): `docker compose down -v` rồi `docker compose up -d --build`.
 - Xem dữ liệu: `docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`.
-- Chạy kiểm thử ngay trong container (tự tạo CSDL thử `<DB_NAME>_test`): `docker compose exec api npm test`, kết quả đúng `# tests 133`, `# pass 133`, `# fail 0`.
+- Chạy kiểm thử ngay trong container (tự tạo CSDL thử `<DB_NAME>_test`): `docker compose exec api npm test`, kết quả đúng `# tests 168`, `# pass 168`, `# fail 0`.
 
 ### 3.2. Chạy trực tiếp bằng Node.js (dành cho phát triển)
 
@@ -63,11 +63,11 @@ Chạy kiểm thử (không cần máy chủ; test cần PostgreSQL thật xem m
 npm test
 ```
 
-Kết quả đúng khi chưa có CSDL thử: `# fail 0`, 7 test cần PostgreSQL được bỏ qua (`# skipped 7`); khi đã đặt `TEST_DATABASE_URL`: `# tests 133`, `# pass 133`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
+Kết quả đúng khi chưa có CSDL thử: `# fail 0`, 7 test cần PostgreSQL được bỏ qua (`# skipped 7`); khi đã đặt `TEST_DATABASE_URL`: `# tests 168`, `# pass 168`, `# fail 0` (số test có thể tăng khi bổ sung). Bộ kiểm thử gồm ba loại: luồng đúng, giá trị biên (thành thạo đúng 3 và 2, thứ Bảy cộng 24 giờ, số điện thoại 9 và 10 số, `limit` 100 và 101) và dữ liệu sai (trường thiếu, mã lạ, số điện thoại rác), cùng test hợp đồng và test tích hợp routes → service → repository.
 
 ### Chạy kiểm thử trên PostgreSQL thật (Bài tập 3)
 
-Sáu test case (TC-07..TC-12 trong `docs/test-report.md`) chạy trên PostgreSQL thật nên cần một CSDL thử riêng. Biến `TEST_DATABASE_URL` phải trỏ tới CSDL có tên kết thúc bằng `_test` (mã từ chối chạy trên CSDL khác vì mỗi test xóa sạch dữ liệu). Chưa đặt biến này thì sáu test đó được BỎ QUA kèm lý do, không phải PASS.
+Tám test case (TC-07..TC-14 trong `docs/test-report.md`) chạy trên PostgreSQL thật nên cần một CSDL thử riêng. Biến `TEST_DATABASE_URL` phải trỏ tới CSDL có tên kết thúc bằng `_test` (mã từ chối chạy trên CSDL khác vì mỗi test xóa sạch dữ liệu). Chưa đặt biến này thì các test đó được BỎ QUA kèm lý do, không phải PASS.
 
 ```
 docker run --rm -d --name l4-test-db -p 5433:5432 -e POSTGRES_PASSWORD=test -e POSTGRES_DB=l4_test postgres:16-alpine
@@ -160,15 +160,15 @@ docs/                tài liệu thiết kế
 - [x] Thực thể 2, Ticket: danh sách chưa phân công (FR1), chi tiết, tiếp nhận, sửa (`PATCH`) và hủy mềm (`DELETE`, TD-26); quy tắc QT-02 (số điện thoại), QT-04 (hạn cam kết, không tính Chủ nhật)
 - [x] Quy tắc phân công (UC3): KTV đủ điều kiện (QT-08), gán trong một giao dịch có khóa dòng, ghi `ticket_status_log` (QT-06, QT-07)
 - [x] Giao diện 4 màn hình gọi API thật qua lớp client, đủ ba trạng thái đang tải / rỗng / lỗi có nút Thử lại; hợp đồng dữ liệu ở `src/contracts/` và khung lỗi thống nhất có `error.fields` (TD-19)
-- [x] 133 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, chèn mã độc, hợp đồng, tích hợp, API; 7 test chạy trên PostgreSQL thật qua `TEST_DATABASE_URL`)
+- [x] 168 kiểm thử PASS bằng `npm test` (luồng đúng, giá trị biên, dữ liệu sai, chèn mã độc, hợp đồng, tích hợp, API, xác thực và phân quyền; 11 test chạy trên PostgreSQL thật qua `TEST_DATABASE_URL`)
 - [x] Ảnh chụp danh sách phiếu, chi tiết phiếu kèm kỹ thuật viên đủ điều kiện, màn tiếp nhận và danh sách kỹ thuật viên trong `docs/anh/`, mô tả ở `docs/bang-chung-luong-chinh.md`
 - [x] Ảnh giao diện thông báo phân công thành công (`docs/bang-chung-luong-chinh.md` mục 6)
 - [x] Khóa Node 20 (`.nvmrc`, `engines`, `npm ci`); log JSON ra stdout có `requestId`, che số điện thoại và bí mật; một bộ xử lý lỗi duy nhất (500/503 kèm mã tra cứu); `docs/bug-log.md` (BUG-001); bằng chứng ở `docs/bang-chung-buoi11.md`
 - [x] Đóng gói Docker: `Dockerfile` nhiều giai đoạn, `docker-compose.yml` (db + api, chờ db healthy), `.dockerignore`; hướng dẫn ở mục 3.1 (TD-27); test chạy được trong container (TD-30)
 - [x] Kế hoạch kiểm thử, báo cáo kiểm thử (12 test case chạy thật, có ảnh), nhật ký lỗi (3 lỗi đã sửa, mỗi lỗi một commit) và CI GitHub Actions: `docs/test-plan.md`, `docs/test-report.md`, `docs/bug-log.md`
 - [ ] Chưa hiện thực: đổi KTV (FR5), đặt lịch hẹn và gợi ý khung giờ (UC6, UC7), `EXCLUDE` chống trùng lịch
-- [ ] Chưa hiện thực: đăng nhập và phân quyền theo trung tâm (TD-18, TD-28); test đồng thời (TD-08)
-- Ghi chú: phân công hiện ghi `assigned_by = 0` vì chưa có đăng nhập (TD-23); danh sách phiếu lọc trung tâm bằng tham số `center_id` thay cho trung tâm trong token (TD-22).
+- [x] Đăng nhập (`POST /api/auth/login`), mật khẩu băm scrypt, token JWT có hạn, phân quyền theo trung tâm (quản lý chỉ thấy trung tâm của mình, 403 nếu khác), màn hình đăng nhập; `assigned_by` là mã người đăng nhập (TD-34, TD-23). Test TC-13, TC-14
+- [ ] Chưa hiện thực: đổi mật khẩu, thu hồi token trước hạn, mã hoá số điện thoại; test đồng thời (TD-08)
 
 ## 7. Log và xử lý lỗi
 

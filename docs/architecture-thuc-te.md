@@ -40,7 +40,7 @@ Thứ tự đăng ký trong `src/app.js`: `ganRequestId` → `express.json` → 
 | Nội dung | BT1 (thiết kế) | Thực tế | Chi tiết |
 |---|---|---|---|
 | Giao diện | Ứng dụng web riêng | HTML + ES modules thuần do chính Express phục vụ, không có bước build | TD-20, TD-24 |
-| Đăng nhập, phân quyền JWT | Có | Chưa làm; `assigned_by = 0` khi chưa có người dùng | TD-18, TD-23 |
+| Đăng nhập, phân quyền JWT | Có | Đã làm mức prototype ở buổi 16: scrypt + JWT HS256, quản lý chỉ truy cập trung tâm của mình; `assigned_by` là mã người đăng nhập | TD-34 (thay TD-18, TD-23) |
 | Đổi kỹ thuật viên, lịch hẹn (UC6, UC7) | Có | Chưa hiện thực | `docs/thay-doi-thiet-ke.md` mục 8 |
 | Logging và lỗi | Chưa nêu | Log JSON ra stdout có `requestId`; bộ xử lý lỗi duy nhất | TD-25 |
 | Sửa và hủy phiếu | Chưa nêu | `PATCH` và `DELETE` mềm cho phiếu | TD-26 |

@@ -33,8 +33,8 @@
 | TD-15 | Thêm 5 endpoint CRUD `/api/technicians` | SỬA (bổ sung cho BT2) | `src/routes/`, `src/services/`, `src/repositories/`, `src/validators/` |
 | TD-16 | Xóa mềm kỹ thuật viên và quy tắc "đang giữ phiếu thì không ngừng hoạt động" | SỬA (bổ sung cho BT2) | `src/services/technician.service.js` |
 | TD-17 | Giữ 6 bảng của ERD; không thêm bảng danh mục từ bộ dữ liệu mẫu | GIỮ NGUYÊN | `migrations/001_init.sql`, `seeds/` |
-| TD-18 | Chưa làm xác thực JWT ở buổi 8 | HOÃN | `src/app.js`, `src/routes/` |
-| TD-28 | Phản hồi BT2: chưa có đăng nhập và phân quyền | GHI NHẬN (đã chốt ở buổi 15, giữ nguyên cho BT3) | `docs/test-plan.md`, `docs/deployment-guide.md` |
+| TD-18 | Chưa làm xác thực JWT ở buổi 8 | ĐÃ LÀM ở buổi 16 (TD-34) | `src/app.js`, `src/routes/` |
+| TD-28 | Phản hồi BT2: chưa có đăng nhập và phân quyền | ĐÃ LÀM ở buổi 16 (TD-34; trước đó ghi nhận ở buổi 15) | `docs/test-plan.md`, `docs/deployment-guide.md` |
 | TD-29 | Phản hồi BT2: thông điệp commit chung chung | GIỮ lịch sử, áp quy ước từ nay | quy ước commit |
 | TD-30 | Test chạy được trong container; CSDL thử tự tạo | SỬA (BT3) | `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `tests/helpers/db.js` |
 | TD-31 | Gọn `.env.example`: bỏ biến không dùng | SỬA (BT3) | `.env.example` |
@@ -193,7 +193,7 @@ Nguồn: đối chiếu thiết kế BT1 với case study, bộ dữ liệu mẫ
 - **Quyết định:** HOÃN. Các endpoint `/api/technicians` hiện chưa yêu cầu token; xác thực và phân quyền làm sau.
 - **Lý do:** Buổi 8 chỉ yêu cầu module cốt lõi đầu tiên chạy được; cơ chế đăng nhập không phải phần được kiểm chứng ở bước này.
 - **Ảnh hưởng:** `src/app.js`, `src/routes/`. Chỉ chạy cục bộ; không triển khai công khai khi chưa có xác thực.
-- **Trạng thái:** Chưa làm.
+- **Trạng thái:** Đã làm ở buổi 16, xem TD-34.
 
 ## 6. Thay đổi khi làm buổi 9 (24/10/2026)
 
@@ -306,7 +306,7 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 
 ### TD-31 — Gọn `.env.example`
 
-- **Quyết định:** bỏ `JWT_SECRET`, `JWT_EXPIRES_IN`, `WORK_START`, `WORK_END`, `APPOINTMENT_MINUTES` vì mã không đọc các biến này (chưa có đăng nhập và đặt lịch); thêm ghi chú nêu rõ không có biến xác thực (TD-18, TD-28).
+- **Quyết định (buổi 15; `JWT_SECRET` được thêm lại ở TD-34):** bỏ `JWT_SECRET`, `JWT_EXPIRES_IN`, `WORK_START`, `WORK_END`, `APPOINTMENT_MINUTES` vì mã không đọc các biến này (chưa có đăng nhập và đặt lịch); thêm ghi chú nêu rõ không có biến xác thực (TD-18, TD-28).
 - **Lý do:** biến thừa gây hiểu nhầm là hệ thống đã có xác thực; mọi biến còn lại đều được dùng.
 - **Trạng thái:** Đã áp dụng.
 
@@ -321,6 +321,17 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 
 - **Quyết định:** `docs/deployment-guide.md` viết lại bằng tiếng Anh theo năm mục bắt buộc (bản tiếng Việt của BT1 giữ ở `docs/huong-dan-csdl-bt1.md`); `docs/api.md` (13 endpoint, ví dụ chạy thật bằng `scripts/sinh-vi-du-api.js`); `docs/checklist-bao-mat.md` (7 mục có minh chứng).
 - **Trạng thái:** Đã áp dụng.
+
+### TD-34 — Đăng nhập và phân quyền mức prototype (thay TD-18, TD-28)
+
+- **Nguồn:** đối chiếu tiêu chí kỹ thuật của đề BT3 cho track SE (kiểm soát truy cập theo chủ sở hữu, mật khẩu băm) và phản hồi BT2 "chưa có đăng nhập và phân quyền". Quyết định giữ ở mức ghi nhận ở buổi 15 bị thay bằng quyết định làm thật ở buổi 16.
+- **Quyết định:** thêm bảng `app_user` (migration `002_app_user.sql`, ràng buộc `ck_user_hash` chỉ nhận chuỗi băm) và 7 tài khoản mẫu (`seeds/005_app_users.sql`, sinh bằng `scripts/tao-seed-nguoi-dung.js`); `POST /api/auth/login`; mật khẩu băm scrypt bằng `crypto` có sẵn của Node (không thêm thư viện); token JWT HS256 tự ký bằng `crypto` (từ chối thuật toán `none`, kiểm hạn); hai vai trò `QUAN_TRI` (mọi trung tâm) và `QUAN_LY` (một trung tâm); mặc định từ chối trên mọi `/api` trừ đăng nhập và `/health`; 403 khi truy cập dữ liệu của trung tâm khác (QT-14); giới hạn 10 lần sai trong 5 phút (429); giao diện có màn hình đăng nhập, nút đăng xuất, token giữ trong `sessionStorage`.
+- **Lý do:** tiêu chí track SE cần một test kiểm soát truy cập PASS và mật khẩu lưu dạng băm; hệ thống không còn "ai gọi cũng được".
+- **Đánh đổi:** không dùng thư viện `jsonwebtoken`/`bcrypt` để giữ đúng hai phụ thuộc chạy thật và tránh thêm cảnh báo `npm audit`; đổi lại phải tự viết và tự kiểm thử phần ký và kiểm token (`tests/auth.*.test.js`). Khóa `JWT_SECRET` là biến bắt buộc nên `docker compose up` thất bại nếu thiếu.
+- **Giải quyết:** TD-18, TD-28 và TD-23 (`assigned_by` và `changed_by` là mã người đăng nhập, test AUTH-01). Hợp đồng API đổi: thêm endpoint 14, mã lỗi 401/403/429, header `Authorization` (`docs/api.md`).
+- **Chưa làm:** đổi mật khẩu, thu hồi token, mã hoá số điện thoại, che số theo vai trò (QT-15 ở tầng phản hồi), nhật ký kiểm toán đăng nhập.
+- **Ảnh hưởng:** `src/auth/`, `src/middleware/xacThuc.js`, `baoVe.js`, `gioiHanDangNhap.js`, `src/routes/*.routes.js`, `src/app.js`, `src/server.js`, `migrations/002_app_user.sql`, `web/src/`, `docker-compose.yml`, `.env.example`, `tests/`, tài liệu BT3.
+- **Trạng thái:** Đã áp dụng; 168 test PASS trong container (ảnh `docs/screenshots/b16-test-168-pass.png`, `TC-13.png`, `TC-14.png`).
 
 ## 10. Điểm còn mở
 

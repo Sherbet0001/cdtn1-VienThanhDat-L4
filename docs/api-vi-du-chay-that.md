@@ -1,8 +1,8 @@
 # Ví dụ API chạy thật
 
-Sinh tự động bởi `scripts/sinh-vi-du-api.js` ngày 2026-11-13T04:20:18.953Z trên http://localhost:3000. Mọi phản hồi dưới đây là kết quả thật, không viết tay.
+Sinh tự động bởi `scripts/sinh-vi-du-api.js` ngày 2026-11-14T01:13:59.120Z trên http://localhost:3000. Mọi phản hồi dưới đây là kết quả thật, không viết tay.
 
-### 1. Kiểm tra sức khỏe
+### 1. Kiểm tra sức khỏe (công khai)
 
 ```http
 GET /health
@@ -17,10 +17,122 @@ Phản hồi: **200**
 }
 ```
 
-### 2. Danh sách kỹ thuật viên (lọc theo trung tâm, phân trang)
+### 2. Lỗi: gọi API khi chưa đăng nhập
+
+```http
+GET /api/technicians?limit=1
+```
+
+Phản hồi: **401**
+
+```json
+{
+  "error": {
+    "code": "UNAUTHENTICATED",
+    "message": "Chưa đăng nhập hoặc phiên đăng nhập đã hết hạn."
+  }
+}
+```
+
+### 3. Lỗi: đăng nhập sai mật khẩu
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "sai-mat-khau"
+}
+```
+
+Phản hồi: **401**
+
+```json
+{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Tên đăng nhập hoặc mật khẩu không đúng."
+  }
+}
+```
+
+### 4. Lỗi: đăng nhập tên không tồn tại (cùng thông điệp với sai mật khẩu)
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "khong_co_ai",
+  "password": "sai-mat-khau"
+}
+```
+
+Phản hồi: **401**
+
+```json
+{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Tên đăng nhập hoặc mật khẩu không đúng."
+  }
+}
+```
+
+### 5. Đăng nhập (quản trị)
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Mekong@2026"
+}
+```
+
+Phản hồi: **200**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs…(rút gọn)",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "user": {
+    "user_id": 1,
+    "username": "admin",
+    "full_name": "Quản trị hệ thống",
+    "role": "QUAN_TRI",
+    "center_id": null
+  }
+}
+```
+
+### 6. Lỗi: quản lý trung tâm 1 xem kỹ thuật viên của trung tâm 2 (403)
+
+```http
+GET /api/technicians?center_id=2
+Authorization: Bearer <token>
+```
+
+Phản hồi: **403**
+
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Bạn không có quyền truy cập dữ liệu của trung tâm này.",
+    "field": "center_id"
+  }
+}
+```
+
+### 7. Danh sách kỹ thuật viên (lọc theo trung tâm, phân trang)
 
 ```http
 GET /api/technicians?limit=2
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -48,10 +160,11 @@ Phản hồi: **200**
 }
 ```
 
-### 3. Chi tiết một kỹ thuật viên (kèm kỹ năng)
+### 8. Chi tiết một kỹ thuật viên (kèm kỹ năng)
 
 ```http
 GET /api/technicians/1
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -80,10 +193,11 @@ Phản hồi: **200**
 }
 ```
 
-### 4. Tạo kỹ thuật viên
+### 9. Tạo kỹ thuật viên
 
 ```http
 POST /api/technicians
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -105,10 +219,11 @@ Phản hồi: **201**
 }
 ```
 
-### 5. Sửa toàn bộ kỹ thuật viên (PUT)
+### 10. Sửa toàn bộ kỹ thuật viên (PUT)
 
 ```http
 PUT /api/technicians/39
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -131,10 +246,11 @@ Phản hồi: **200**
 }
 ```
 
-### 6. Ngừng hoạt động kỹ thuật viên (xóa mềm)
+### 11. Ngừng hoạt động kỹ thuật viên (xóa mềm)
 
 ```http
 DELETE /api/technicians/39
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -149,10 +265,11 @@ Phản hồi: **200**
 }
 ```
 
-### 7. Lỗi: tạo kỹ thuật viên sai dữ liệu
+### 12. Lỗi: tạo kỹ thuật viên sai dữ liệu
 
 ```http
 POST /api/technicians
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -187,10 +304,11 @@ Phản hồi: **400**
 }
 ```
 
-### 8. Lỗi: kỹ thuật viên không tồn tại
+### 13. Lỗi: kỹ thuật viên không tồn tại
 
 ```http
 GET /api/technicians/999999999
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **404**
@@ -205,10 +323,11 @@ Phản hồi: **404**
 }
 ```
 
-### 9. Danh sách phiếu chưa phân công
+### 14. Danh sách phiếu chưa phân công
 
 ```http
 GET /api/tickets/unassigned?limit=2
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -253,10 +372,11 @@ Phản hồi: **200**
 }
 ```
 
-### 10. Chi tiết một phiếu
+### 15. Chi tiết một phiếu
 
 ```http
 GET /api/tickets/6924
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -279,10 +399,11 @@ Phản hồi: **200**
 }
 ```
 
-### 11. Kỹ thuật viên đủ điều kiện của phiếu
+### 16. Kỹ thuật viên đủ điều kiện của phiếu
 
 ```http
 GET /api/tickets/6924/eligible-technicians
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -317,10 +438,11 @@ Phản hồi: **200**
 }
 ```
 
-### 12. Danh sách kỹ thuật viên (tối đa 100, để chọn người không đủ điều kiện)
+### 17. Danh sách kỹ thuật viên (tối đa 100, để chọn người không đủ điều kiện)
 
 ```http
 GET /api/technicians?limit=100
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **200**
@@ -607,10 +729,11 @@ Phản hồi: **200**
 }
 ```
 
-### 13. Lỗi: phân công kỹ thuật viên không đủ điều kiện
+### 18. Lỗi: phân công kỹ thuật viên không đủ điều kiện
 
 ```http
 POST /api/tickets/6924/assignment
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -630,10 +753,11 @@ Phản hồi: **400**
 }
 ```
 
-### 14. Lỗi: phân công thiếu technician_id
+### 19. Lỗi: phân công thiếu technician_id
 
 ```http
 POST /api/tickets/6924/assignment
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {}
@@ -657,10 +781,11 @@ Phản hồi: **400**
 }
 ```
 
-### 15. Phân công kỹ thuật viên cho phiếu
+### 20. Phân công kỹ thuật viên cho phiếu
 
 ```http
 POST /api/tickets/6924/assignment
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -676,15 +801,16 @@ Phản hồi: **201**
   "ticket_code": "BH-006924/2026",
   "status": "DA_PHAN_CONG",
   "technician_id": 17,
-  "assigned_at": "2026-11-13T11:20:18+07:00",
-  "assigned_by": 0
+  "assigned_at": "2026-11-14T08:13:58+07:00",
+  "assigned_by": 1
 }
 ```
 
-### 16. Lỗi: phân công lần hai cho phiếu đã có người
+### 21. Lỗi: phân công lần hai cho phiếu đã có người
 
 ```http
 POST /api/tickets/6924/assignment
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -708,10 +834,11 @@ Phản hồi: **409**
 }
 ```
 
-### 17. Lỗi: ngừng hoạt động kỹ thuật viên còn phiếu mở
+### 22. Lỗi: ngừng hoạt động kỹ thuật viên còn phiếu mở
 
 ```http
 DELETE /api/technicians/17
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **409**
@@ -729,10 +856,11 @@ Phản hồi: **409**
 }
 ```
 
-### 18. Tiếp nhận phiếu mới
+### 23. Tiếp nhận phiếu mới
 
 ```http
 POST /api/tickets
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -759,15 +887,16 @@ Phản hồi: **201**
   "center_id": 5,
   "technician_id": null,
   "technician_name": null,
-  "received_at": "2026-11-13T11:20:18+07:00",
-  "due_date": "2026-11-17T11:20:18+07:00"
+  "received_at": "2026-11-14T08:13:59+07:00",
+  "due_date": "2026-11-18T08:13:59+07:00"
 }
 ```
 
-### 19. Sửa phiếu chưa phân công (PATCH)
+### 24. Sửa phiếu chưa phân công (PATCH)
 
 ```http
 PATCH /api/tickets/7801
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -791,15 +920,16 @@ Phản hồi: **200**
   "center_id": 5,
   "technician_id": null,
   "technician_name": null,
-  "received_at": "2026-11-13T11:20:18+07:00",
-  "due_date": "2026-11-14T11:20:18+07:00"
+  "received_at": "2026-11-14T08:13:59+07:00",
+  "due_date": "2026-11-16T08:13:59+07:00"
 }
 ```
 
-### 20. Hủy phiếu (xóa mềm)
+### 25. Hủy phiếu (xóa mềm)
 
 ```http
 DELETE /api/tickets/7801
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -822,15 +952,16 @@ Phản hồi: **200**
   "center_id": 5,
   "technician_id": null,
   "technician_name": null,
-  "received_at": "2026-11-13T11:20:18+07:00",
-  "due_date": "2026-11-14T11:20:18+07:00"
+  "received_at": "2026-11-14T08:13:59+07:00",
+  "due_date": "2026-11-16T08:13:59+07:00"
 }
 ```
 
-### 21. Lỗi: phiếu không tồn tại
+### 26. Lỗi: phiếu không tồn tại
 
 ```http
 GET /api/tickets/999999999
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **404**
@@ -845,10 +976,11 @@ Phản hồi: **404**
 }
 ```
 
-### 22. Lỗi: tiếp nhận phiếu thiếu dữ liệu
+### 27. Lỗi: tiếp nhận phiếu thiếu dữ liệu
 
 ```http
 POST /api/tickets
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {}
@@ -888,10 +1020,11 @@ Phản hồi: **400**
 }
 ```
 
-### 23. Lỗi: JSON không hợp lệ
+### 28. Lỗi: JSON không hợp lệ
 
 ```http
 POST /api/tickets
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {bad json
@@ -909,10 +1042,11 @@ Phản hồi: **400**
 }
 ```
 
-### 24. Chèn SQL qua số điện thoại
+### 29. Chèn SQL qua số điện thoại
 
 ```http
 POST /api/tickets
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -942,10 +1076,11 @@ Phản hồi: **400**
 }
 ```
 
-### 25. Chèn SQL qua tham số center_id (kỹ thuật viên)
+### 30. Chèn SQL qua tham số center_id (kỹ thuật viên)
 
 ```http
 GET /api/technicians?center_id=1'%20OR%20'1'%3D'1
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **400**
@@ -966,10 +1101,11 @@ Phản hồi: **400**
 }
 ```
 
-### 26. Chèn SQL qua tham số center_id (phiếu)
+### 31. Chèn SQL qua tham số center_id (phiếu)
 
 ```http
 GET /api/tickets/unassigned?center_id=1'%20OR%20'1'%3D'1
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **400**
@@ -990,10 +1126,11 @@ Phản hồi: **400**
 }
 ```
 
-### 27. Chèn SQL qua mã trong đường dẫn
+### 32. Chèn SQL qua mã trong đường dẫn
 
 ```http
 GET /api/tickets/1%20OR%201%3D1
+Authorization: Bearer <token>
 ```
 
 Phản hồi: **400**

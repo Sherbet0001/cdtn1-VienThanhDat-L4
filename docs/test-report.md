@@ -6,8 +6,10 @@ Sinh viên: Viên Thành Đạt · MSSV 2374802010107. Kế hoạch: `docs/test-
 > **Minh chứng từng test case:** mỗi test case được chạy riêng bằng `npm run tc -- TC-xx` và chụp ảnh lưu ở `docs/screenshots/TC-xx.png` (chạy ngày 06/11/2026, cả 12 đều PASS, `pass 1 / fail 0`).
 > Cả 12 test case đều PASS ở lần chạy này. Sau đó phát hiện BUG-003 (ký tự NUL trong văn bản nhập trả 500, xem `docs/bug-log.md`); sau khi sửa và thêm test hồi quy, chạy lại cho 127 test, 127 PASS, 0 FAIL, 0 bỏ qua (`docs/anh/bt3-npm-test-sau-bug003.png`).
 
+> **Cập nhật 14/11/2026 (TD-34, đăng nhập và phân quyền):** 12 test case chung TC-01..TC-12 giữ nguyên; thêm **2 test case cho track SE** là TC-13 (kiểm soát truy cập theo trung tâm, OWASP A01) và TC-14 (mật khẩu lưu dạng băm, OWASP A02/A07). Cả hai PASS khi chạy riêng bằng `npm run tc -- TC-13` và `TC-14` (ảnh `docs/screenshots/TC-13.png`, `TC-14.png`). Chạy lại cả bộ trong container sau khi thêm đăng nhập: **168 test, 168 PASS, 0 FAIL, 0 bỏ qua** (ảnh `docs/screenshots/b16-test-168-pass.png`). Khi chạy riêng một TC, dòng `skipped 3` chỉ là các test khác cùng tệp bị bộ lọc tên bỏ qua, không phải test lỗi.
+
 Mỗi test case có đủ tám cột: (1) Mã · (2) Tiền điều kiện · (3) Các bước · (4) Dữ liệu thử · (5) Kết quả mong đợi · (6) Ưu tiên · (7) Kết quả thực tế · (8) PASS/FAIL.
-Cách chạy riêng một test case: `npm run tc -- TC-05` (đổi mã; cần `TEST_DATABASE_URL` cho TC-07..TC-12). Chạy tất cả: `npm test`.
+Cách chạy riêng một test case: `npm run tc -- TC-05` (đổi mã; cần `TEST_DATABASE_URL` cho TC-07..TC-14). Chạy tất cả: `npm test`.
 
 ## Tổng hợp
 
@@ -25,8 +27,10 @@ Cách chạy riêng một test case: `npm run tc -- TC-05` (đổi mã; cần `T
 | TC-10 | Luồng đúng | API | QT-04 | tests/bt3/api.test.js | PASS |
 | TC-11 | Dữ liệu sai | API | validator | tests/bt3/api.test.js | PASS |
 | TC-12 | Luồng đúng | API | QT-13 | tests/bt3/api.test.js | PASS |
+| TC-13 | Bảo mật (A01, track SE) | API | QT-14 | tests/bt3/auth.test.js | PASS |
+| TC-14 | Bảo mật (A02/A07, track SE) | API | mật khẩu băm | tests/bt3/auth.test.js | PASS |
 
-Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · dữ liệu sai 3 (TC-05, 08, 11) · bảo mật/chất lượng dữ liệu 1 (TC-06) · tái lập 1 (TC-09).
+Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · dữ liệu sai 3 (TC-05, 08, 11) · bảo mật/chất lượng dữ liệu 1 (TC-06) · tái lập 1 (TC-09). Hai test case bổ sung cho track SE: bảo mật 2 (TC-13, TC-14).
 
 ## Chi tiết
 
@@ -150,6 +154,28 @@ Năm loại: luồng đúng 5 (TC-01, 04, 07, 10, 12) · biên 2 (TC-02, 03) · 
 7. **Kết quả thực tế:** HTTP 200; dòng KTV vẫn còn trong bảng technician (1 dòng); is_active = false; khớp mong đợi.
 8. **PASS/FAIL:** PASS (ảnh `docs/screenshots/TC-12.png`, chạy bằng `npm run tc -- TC-12`)
 
+### TC-13 · Bảo mật (OWASP A01) · QT-14 quản lý chỉ truy cập trung tâm của mình (API + PostgreSQL thật)
+1. **Mã:** TC-13
+2. **Tiền điều kiện:** CSDL thử có 1 KTV và 2 phiếu `MOI` (trung tâm 4 và trung tâm 2), tài khoản `QUAN_LY` của trung tâm 4 và tài khoản `QUAN_TRI`; cả hai đã đăng nhập và có token.
+3. **Các bước:** (1) Quản lý TT4 gọi `GET /api/tickets/{phiếu TT2}`. (2) Quản lý TT4 gọi `POST /api/tickets/{phiếu TT2}/assignment`. (3) Quản lý TT4 gọi `GET /api/tickets/unassigned` rồi lại gọi với `?center_id=2`. (4) Quản lý TT4 đọc phiếu TT4; quản trị đọc phiếu TT2. (5) Gọi không token và với token giả.
+4. **Dữ liệu thử:** hai phiếu thuộc hai trung tâm; token của quản lý TT4 và của quản trị; chuỗi `khong.phai.token`.
+5. **Kết quả mong đợi:** (1), (2) → 403 `FORBIDDEN`, phản hồi không chứa dữ liệu phiếu, phiếu TT2 vẫn `MOI` và chưa có KTV; (3) lần đầu chỉ thấy phiếu trung tâm 4, lần hai 403; (4) cả hai 200; (5) 401.
+6. **Ưu tiên:** Cao.
+7. **Kết quả thực tế:** đúng như mong đợi ở cả 5 bước; dữ liệu trong CSDL không đổi sau các yêu cầu bị từ chối.
+8. **PASS/FAIL:** PASS (ảnh `docs/screenshots/TC-13.png`, chạy bằng `npm run tc -- TC-13`)
+
+### TC-14 · Bảo mật (OWASP A02, A07) · mật khẩu lưu dạng băm, đăng nhập không lộ tên tài khoản (API + PostgreSQL thật)
+1. **Mã:** TC-14
+2. **Tiền điều kiện:** CSDL thử có 1 tài khoản `QUAN_LY` trung tâm 4, mật khẩu được băm scrypt khi tạo.
+3. **Các bước:** (1) Đọc cột `password_hash` trong bảng `app_user`. (2) Thử chèn trực tiếp một dòng có mật khẩu dạng gốc. (3) Đăng nhập đúng. (4) Đăng nhập sai mật khẩu. (5) Đăng nhập tên không tồn tại.
+4. **Dữ liệu thử:** mật khẩu thử `Mat-khau-thu-123`; mật khẩu sai `mat-khau-sai`; tên `khong-ton-tai`; chuỗi `matkhau-goc`.
+5. **Kết quả mong đợi:** (1) chuỗi bắt đầu `scrypt$`, không chứa mật khẩu gốc; (2) CSDL từ chối (ràng buộc `ck_user_hash`); (3) 200, `token_type` = `Bearer`, vai trò và trung tâm đúng, phản hồi không chứa chuỗi băm; (4), (5) cùng 401 và hai nội dung phản hồi giống hệt nhau.
+6. **Ưu tiên:** Cao.
+7. **Kết quả thực tế:** đúng như mong đợi ở cả 5 bước.
+8. **PASS/FAIL:** PASS (ảnh `docs/screenshots/TC-14.png`, chạy bằng `npm run tc -- TC-14`)
+
+Hai test cùng tệp là AUTH-01 (`assigned_by` và `changed_by` là mã người đăng nhập, không còn bằng 0, TD-23) và AUTH-02 (quản lý bỏ trống `center_id` thì mặc định trung tâm mình, ghi vào trung tâm khác bị 403); chúng nằm trong bộ `npm test`, không đánh số TC.
+
 ## Kiểm thử chèn mã độc (buổi 15)
 
 Bổ sung cho mục 2 của `docs/checklist-bao-mat.md`. Tệp `tests/bao-mat-injection.test.js` (6 test, không cần CSDL) đưa chuỗi tấn công kiểu `' OR '1'='1`, `1 OR 1=1`, `1; DROP TABLE ticket;--` vào số điện thoại, `center_id`, mã trong đường dẫn, `technician_id`, `limit`, `page`, `offset`. Mỗi ca khẳng định phản hồi là 400 `VALIDATION_ERROR` đúng trường, VÀ lớp nghiệp vụ không bao giờ được gọi (dịch vụ giả ném lỗi nếu bị gọi), tức là dữ liệu độc không tới được câu SQL. Chạy riêng: `node --test tests/bao-mat-injection.test.js`.
@@ -163,7 +189,7 @@ Bổ sung cho mục 2 của `docs/checklist-bao-mat.md`. Tệp `tests/bao-mat-in
 | SEC-05 | `technician_id` khi phân công | 400, field `technician_id` |
 | SEC-06 | `limit`, `page`, `offset` | 400, đúng field |
 
-Kiểm thử trên hệ thống chạy thật (4 yêu cầu chèn mã, cùng trả 400): `docs/api-vi-du-chay-that.md`, mục 24–27. Tổng số test của dự án sau khi thêm: 133.
+Kiểm thử trên hệ thống chạy thật (4 yêu cầu chèn mã, cùng trả 400): bốn mục "Chèn SQL…" ở cuối `docs/api-vi-du-chay-that.md`. Tổng số test của dự án sau khi thêm các test này: 133; sau khi thêm đăng nhập: 168.
 
 ## Kiểm tra test có khả năng thất bại
 

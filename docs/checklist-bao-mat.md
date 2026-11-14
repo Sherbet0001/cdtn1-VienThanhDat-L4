@@ -6,8 +6,8 @@ Tự đánh giá cho phiên bản `v1.0`. Mỗi mục: **ĐÃ LÀM / CHƯA LÀM 
 |---|---|---|---|
 | 1 | Không có secret trong repo | ĐÃ LÀM | `.env` nằm trong `.gitignore`; `git log --all -- .env` rỗng; ảnh `sec-1.png` |
 | 2 | Kiểm tra dữ liệu vào ở tầng ứng dụng | ĐÃ LÀM | `src/validators/*`; kiểm thử injection và JSON hỏng; ảnh `sec-2.png` |
-| 3 | Kiểm soát truy cập theo chủ sở hữu | KHÔNG ÁP DỤNG | Hệ thống chưa có đăng nhập, chưa có bảng người dùng (TD-18, TD-28) |
-| 4 | Mật khẩu và dữ liệu nhạy cảm được băm hoặc mã hoá | CHƯA LÀM (một phần) | Không có mật khẩu để băm; số điện thoại khách lưu dạng đọc được |
+| 3 | Kiểm soát truy cập theo chủ sở hữu | ĐÃ LÀM | Đăng nhập + JWT; quản lý chỉ truy cập trung tâm của mình (403 nếu khác); test TC-13; ảnh `TC-13.png` |
+| 4 | Mật khẩu và dữ liệu nhạy cảm được băm hoặc mã hoá | ĐÃ LÀM (mật khẩu); CHƯA LÀM (số điện thoại) | Mật khẩu băm scrypt + muối riêng; test TC-14; ảnh `TC-14.png`; số điện thoại khách còn ở dạng đọc được |
 | 5 | Thông báo lỗi không lộ cấu trúc bên trong | ĐÃ LÀM | `src/middleware/xuLyLoi.js`; ảnh `sec-5a.png`, `sec-5b.png` |
 | 6 | Nhật ký không ghi mật khẩu, token, dữ liệu cá nhân | ĐÃ LÀM | `src/logger.js` che trường nhạy cảm; `tests/logger.test.js`; ảnh `sec-6.png` |
 | 7 | Phụ thuộc được ghim phiên bản, đã kiểm lỗ hổng | ĐÃ LÀM (đã phát hiện và xử lý 4 cảnh báo) | Ghim phiên bản + `package-lock.json`; `npm audit` trước và sau khi nâng `express`; ảnh `sec-7-truoc-khi-sua.png`, `sec-7.png` |
@@ -15,7 +15,7 @@ Tự đánh giá cho phiên bản `v1.0`. Mỗi mục: **ĐÃ LÀM / CHƯA LÀM 
 ## 1. Không có secret trong repo — ĐÃ LÀM
 
 - `.gitignore` loại `.env` và `.env.*` (chỉ giữ `.env.example`). `.env.example` chỉ chứa giá trị mẫu (`DB_PASSWORD=change_me`).
-- Chuỗi kết nối trong `docker-compose.yml` được ghép từ biến `${DB_USER}`, `${DB_PASSWORD}`, không viết cứng.
+- Chuỗi kết nối trong `docker-compose.yml` được ghép từ biến `${DB_USER}`, `${DB_PASSWORD}`; khóa ký token lấy từ biến `${JWT_SECRET}` (không có mặc định trong mã, thiếu thì `docker compose` từ chối chạy). `.env.example` chỉ có giá trị mẫu cho cả hai.
 - Còn lại hai chỗ có mật khẩu viết sẵn, cả hai chỉ là CSDL thử dùng một lần: `.github/workflows/ci.yml` và lệnh mẫu trong `README.md` (`postgres:test@...l4_test`). Không phải secret thật.
 - Lệnh kiểm tra (kết quả phải rỗng):
   ```
@@ -39,15 +39,21 @@ Tự đánh giá cho phiên bản `v1.0`. Mỗi mục: **ĐÃ LÀM / CHƯA LÀM 
 - Kết quả thực tế (`sec-2.png`): lệnh thứ nhất khớp 2 dòng trong `src/repositories/ticket.repository.js` (dòng 48 và 50). Đây là việc ghép hai hằng số cố định trong mã (`SELECT_PHIEU` và `dieuKien`) vào câu truy vấn; giá trị do người dùng nhập luôn đi qua tham số `$1`, `$2`, `$3`, nên không phải SQL injection. Hai lệnh còn lại không khớp dòng nào (`exit=1`).
 - Minh chứng: `docs/screenshots/sec-2.png`.
 
-## 3. Kiểm soát truy cập theo chủ sở hữu — KHÔNG ÁP DỤNG
+## 3. Kiểm soát truy cập theo chủ sở hữu — ĐÃ LÀM
 
-Hệ thống chưa có đăng nhập, phiên làm việc hay bảng người dùng, nên chưa có khái niệm "chủ sở hữu" để kiểm soát. Giảng viên đã nhận xét điểm này ở Bài tập 2; em đã ghi nhận ở `docs/thay-doi-thiet-ke.md` (TD-18, TD-28) và quyết định giữ ở mức ghi nhận trong phạm vi Bài tập 3. Hệ quả: ai truy cập được API đều gọi được mọi chức năng, vì vậy chưa nên mở ra internet (xem mục 7 của `docs/deployment-guide.md`).
+- "Chủ sở hữu" ở đây là **trung tâm bảo hành**: tài khoản `QUAN_LY` gắn với đúng một trung tâm (`app_user.center_id`), tài khoản `QUAN_TRI` xem được mọi trung tâm. Mọi đường `/api` (trừ `POST /api/auth/login` và `/health`) bắt buộc có token, mặc định từ chối.
+- Quy tắc nằm ở `src/auth/phanQuyen.js`, nối vào từng route bằng `src/middleware/baoVe.js` (kiểm tra trước khi hàm xử lý chạy): đọc, sửa, xóa, phân công phiếu hoặc kỹ thuật viên của trung tâm khác → **403 `FORBIDDEN`** và dữ liệu không đổi; mã không tồn tại → 404; danh sách bị ép về trung tâm của người gọi; tạo/sửa với `center_id` của trung tâm khác → 403.
+- Kiểm thử: **TC-13** (`tests/bt3/auth.test.js`) chạy trên PostgreSQL thật: quản lý trung tâm 4 đọc và gán phiếu trung tâm 2 đều bị 403, không có dòng nào thay đổi; đúng trung tâm và quản trị thì thành công. Chạy một mình: `docker compose exec api npm run tc -- TC-13`. Ảnh: `docs/screenshots/TC-13.png`.
+- Token: ký HS256 bằng khóa `JWT_SECRET` (≥ 32 ký tự, bắt buộc, không có trong mã), có hạn, từ chối thuật toán `none` và token bị sửa; mọi lỗi xác thực cùng một thông điệp. Có test đơn vị trong `tests/auth.*.test.js`.
+- Hạn chế trung thực: không có đăng ký tài khoản, đổi mật khẩu hay thu hồi token trước hạn (đăng xuất chỉ xóa token ở trình duyệt); chỉ có hai vai trò. Đây là mức prototype (TD-34).
 
-## 4. Mật khẩu và dữ liệu nhạy cảm — CHƯA LÀM (một phần)
+## 4. Mật khẩu và dữ liệu nhạy cảm — ĐÃ LÀM (mật khẩu), CHƯA LÀM (số điện thoại)
 
-- Hệ thống không lưu mật khẩu người dùng nên không có gì để băm.
-- Số điện thoại khách hàng (dữ liệu cá nhân) đang lưu ở dạng đọc được trong PostgreSQL và trả đầy đủ cho người gọi API. Chỉ nhật ký được che số (QT-15). Em chưa mã hoá cột này.
-- Cải tiến khi có đăng nhập: che số ở phản hồi theo vai trò, mã hoá cột hoặc mã hoá ổ đĩa.
+- Mật khẩu đăng nhập được băm bằng **scrypt** (`src/auth/password.js`: muối ngẫu nhiên riêng cho mỗi tài khoản, N=16384, so sánh bằng hàm chống đo thời gian). CSDL chỉ lưu chuỗi dạng `scrypt$16384$8$1$<muối>$<băm>`.
+- Đăng nhập sai tên và sai mật khẩu cùng trả 401 `INVALID_CREDENTIALS` với cùng thông điệp, luôn tốn một lần băm (không lộ tên nào có thật); sai 10 lần trong 5 phút → 429.
+- Kiểm thử: **TC-14** (`tests/bt3/auth.test.js`): chuỗi trong CSDL có dạng `scrypt$...` và không chứa mật khẩu gốc, đăng nhập đúng → 200 và có token, sai mật khẩu và tên lạ → 401 cùng thông điệp. Ảnh: `docs/screenshots/TC-14.png`.
+- Mật khẩu mẫu `Mekong@2026` trong README và Deployment Guide là **dữ liệu mẫu** của 7 tài khoản chạy thử (`seeds/005_app_users.sql`, trong repo chỉ có chuỗi băm); phải đổi hoặc xóa khi triển khai thật. Khóa `JWT_SECRET` trong `.env.example` cũng là giá trị mẫu.
+- CHƯA LÀM: số điện thoại khách hàng (dữ liệu cá nhân) vẫn lưu ở dạng đọc được trong PostgreSQL và trả đầy đủ cho người dùng đã đăng nhập; chỉ nhật ký được che số (QT-15). Cải tiến: che số theo vai trò, mã hoá cột hoặc mã hoá ổ đĩa.
 
 ## 5. Thông báo lỗi không lộ cấu trúc bên trong — ĐÃ LÀM
 
@@ -83,4 +89,4 @@ Hệ thống chưa có đăng nhập, phiên làm việc hay bảng người dù
 
 ## Mười nhóm rủi ro OWASP: nhận biết (tóm tắt)
 
-Hệ thống này đã xử lý rõ nhóm injection (SQL tham số hoá, `textContent`) và lộ thông tin qua thông báo lỗi. Hai nhóm còn hở là kiểm soát truy cập và xác thực (mục 3, TD-28) và bảo vệ dữ liệu cá nhân khi lưu trữ (mục 4).
+Hệ thống này đã xử lý rõ nhóm injection (SQL tham số hoá, `textContent`) và lộ thông tin qua thông báo lỗi. Kiểm soát truy cập (A01, mục 3) và xác thực (A02, A07, mục 4) đã có ở mức prototype và có test. Nhóm còn hở là bảo vệ dữ liệu cá nhân khi lưu trữ: số điện thoại khách chưa mã hoá (mục 4), chưa có đổi/thu hồi mật khẩu, và chưa chạy kiểm thử xâm nhập bên ngoài.
