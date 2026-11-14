@@ -329,6 +329,7 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 - **Lý do:** tiêu chí track SE cần một test kiểm soát truy cập PASS và mật khẩu lưu dạng băm; hệ thống không còn "ai gọi cũng được".
 - **Đánh đổi:** không dùng thư viện `jsonwebtoken`/`bcrypt` để giữ đúng hai phụ thuộc chạy thật và tránh thêm cảnh báo `npm audit`; đổi lại phải tự viết và tự kiểm thử phần ký và kiểm token (`tests/auth.*.test.js`). Khóa `JWT_SECRET` là biến bắt buộc nên `docker compose up` thất bại nếu thiếu.
 - **Giải quyết:** TD-18, TD-28 và TD-23 (`assigned_by` và `changed_by` là mã người đăng nhập, test AUTH-01). Hợp đồng API đổi: thêm endpoint 14, mã lỗi 401/403/429, header `Authorization` (`docs/api.md`).
+- **Sau khi thử trên giao diện (14/11):** bộ lọc trung tâm của quản lý chỉ còn trung tâm của mình (trước đó chọn trung tâm khác thì nhận 403, đúng nhưng khó hiểu); lỗi 403 hiện thông báo riêng "Bạn không có quyền xem dữ liệu này".
 - **Chưa làm:** đổi mật khẩu, thu hồi token, mã hoá số điện thoại, che số theo vai trò (QT-15 ở tầng phản hồi), nhật ký kiểm toán đăng nhập.
 - **Ảnh hưởng:** `src/auth/`, `src/middleware/xacThuc.js`, `baoVe.js`, `gioiHanDangNhap.js`, `src/routes/*.routes.js`, `src/app.js`, `src/server.js`, `migrations/002_app_user.sql`, `web/src/`, `docker-compose.yml`, `.env.example`, `tests/`, tài liệu BT3.
 - **Trạng thái:** Đã áp dụng; 168 test PASS trong container (ảnh `docs/screenshots/b16-test-168-pass.png`, `TC-13.png`, `TC-14.png`).

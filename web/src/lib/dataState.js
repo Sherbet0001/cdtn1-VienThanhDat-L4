@@ -21,6 +21,9 @@ export function thongBaoLoi(err) {
   if (!err || err.network) {
     return { tieuDe: 'Không kết nối được tới hệ thống.', chiTiet: 'Kiểm tra mạng hoặc máy chủ đã chạy chưa, rồi bấm Thử lại.' };
   }
+  if (err.status === 403) {
+    return { tieuDe: 'Bạn không có quyền xem dữ liệu này.', chiTiet: 'Tài khoản quản lý chỉ làm việc với trung tâm của mình. Đăng nhập bằng tài khoản có quyền nếu cần.' };
+  }
   if (err.status >= 400 && err.status < 500) {
     return { tieuDe: 'Yêu cầu chưa hợp lệ.', chiTiet: err.message || 'Hãy kiểm tra lại thông tin rồi thử lại.' };
   }

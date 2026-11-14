@@ -2,6 +2,7 @@
 import { listUnassigned } from '../api/tickets.api.js';
 import { hienThiDuLieu } from '../components/DataState.js';
 import { h } from '../components/dom.js';
+import { layPhien } from '../api/client.js';
 import { NHAN_NHOM_LOI, NHAN_UU_TIEN, daQuaHan, ngayGio, nhan } from '../lib/dinhDang.js';
 
 const SO_DONG = 10;
@@ -20,7 +21,10 @@ function dongPhieu(p) {
 
 export function trangDanhSach(goc) {
   let trang = 1;
-  let trungTam = '';
+  // Quản lý chỉ thấy trung tâm của mình: bộ lọc chỉ có một lựa chọn (máy chủ cũng chặn trung tâm khác bằng 403).
+  const nguoi = layPhien()?.user;
+  const trungTamCuaToi = nguoi && nguoi.role === 'QUAN_LY' && nguoi.center_id ? String(nguoi.center_id) : '';
+  let trungTam = trungTamCuaToi;
   const ketQua = h('div');
 
   const tai = () => hienThiDuLieu(ketQua, {
@@ -45,8 +49,9 @@ export function trangDanhSach(goc) {
     h('p', {}, 'Câu hỏi màn hình này trả lời: ', h('strong', {}, 'phiếu nào đang chờ giao cho kỹ thuật viên, hạn cam kết ra sao?')),
     h('label', {}, 'Trung tâm ',
       h('select', { id: 'loc-trung-tam', onchange: (e) => { trungTam = e.target.value; trang = 1; tai(); } },
-        h('option', { value: '' }, 'Tất cả trung tâm'),
-        ...[1, 2, 3, 4, 5, 6].map((n) => h('option', { value: String(n) }, `Trung tâm ${n}`)))),
+        ...(trungTamCuaToi ? [] : [h('option', { value: '' }, 'Tất cả trung tâm')]),
+        ...[1, 2, 3, 4, 5, 6].filter((n) => !trungTamCuaToi || String(n) === trungTamCuaToi)
+          .map((n) => h('option', { value: String(n) }, `Trung tâm ${n}`)))),
     ketQua);
   tai();
 }
