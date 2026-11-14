@@ -203,6 +203,12 @@ Tiêu chí 5 của Test Plan: cố tình sửa mã thì ít nhất một test ph
 
 Sau khi khôi phục: 127 PASS, 0 FAIL; phát hiện 3/3 lần sửa. Lưu ý trung thực: M1 không bị TC-04 phát hiện (TC-04 dùng mức thành thạo 4, xa ranh giới); biên QT-08 được giữ bởi test riêng trong bộ `npm test`, không nằm trong 12 test case của báo cáo.
 
+## Phép thử máy trắng (buổi 16)
+
+Mục tiêu: người chỉ có Docker và Git dựng và kiểm chứng được hệ thống bằng hai lệnh, không cài Node hay PostgreSQL. Cách làm (14/11/2026, trên bản `main` sau khi thêm đăng nhập): clone sạch vào thư mục tạm, `Copy-Item .env.example .env`, `docker compose -p mtrang up -d --build`, đợi `db` và `api` đều `healthy`, rồi `docker compose -p mtrang exec api npm test`.
+
+Kết quả: **168 test, 168 PASS, 0 FAIL, 0 bỏ qua** (ảnh `docs/screenshots/b16-may-trang-168.png`). Ảnh các bước clone, `docker compose ps` và seed chạy lần hai (lần thử trước khi thêm đăng nhập, 133 test): `docs/screenshots/b16-may-trang-clone.png`, `b16-may-trang-ps.png`, `b16-may-trang-test.png`, `b16-seed-lan-hai.png`. Lưu ý trung thực: lần thử đầu của bản mới báo `port is already allocated` vì bản đang chạy ở thư mục chính còn giữ cổng 3000; sau `docker compose down` ở thư mục chính thì chạy đúng. Đây là lỗi môi trường của người thử, không phải lỗi hệ thống; Deployment Guide mục Troubleshooting đã có dòng này.
+
 ## Kiểm thử tự động (CI)
 
 Mỗi lần đẩy mã lên `main`, GitHub Actions (`.github/workflows/ci.yml`) dựng PostgreSQL 16 và chạy `npm ci`, `npm test`. Lần chạy đầu tiên (ci #1, commit `cca2f9f`) báo xanh sau 32 giây: ảnh `docs/anh/ci-xanh.png`.
