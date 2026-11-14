@@ -281,10 +281,10 @@ Phản hồi: điểm mạnh là phân công KTV đủ điều kiện, CRUD hai 
 ### TD-28 — Chưa có đăng nhập và phân quyền (phản hồi BT2)
 
 - **Nguồn:** phản hồi BT2: "Chưa có đăng nhập và phân quyền (em đã ghi nhận)"; liên quan TD-18 và TD-24.
-- **Quyết định:** GHI NHẬN, chưa hiện thực trong Bài tập 3. Trong Test Plan, mục đăng nhập/phân quyền/token (OWASP A01, A07) ghi rõ là cố ý không kiểm; trong Test Report và checklist bảo mật ghi "không áp dụng", không ghi "đạt". Deployment Guide nêu rõ hệ thống chưa có xác thực nên chỉ chạy trong mạng nội bộ hoặc máy cục bộ, không mở công khai. Sau buổi 15 (bảo mật API) sẽ đánh giá lại có đủ thời gian làm xác thực tối thiểu (đăng nhập, token có hạn, kiểm vai trò) hay không.
+- **Quyết định ban đầu (buổi 15, ĐÃ ĐƯỢC THAY bằng TD-34 ở buổi 16):** GHI NHẬN, chưa hiện thực trong Bài tập 3. Trong Test Plan, mục đăng nhập/phân quyền/token (OWASP A01, A07) ghi rõ là cố ý không kiểm; trong Test Report và checklist bảo mật ghi "không áp dụng", không ghi "đạt". Deployment Guide nêu rõ hệ thống chưa có xác thực nên chỉ chạy trong mạng nội bộ hoặc máy cục bộ, không mở công khai. Sau buổi 15 (bảo mật API) sẽ đánh giá lại có đủ thời gian làm xác thực tối thiểu (đăng nhập, token có hạn, kiểm vai trò) hay không.
 - **Lý do:** thêm xác thực kéo theo đổi hợp đồng API, `assigned_by` lấy từ token, QT-14, giao diện đăng nhập và bộ test mới; làm vội trước hạn nộp dễ sinh bug bảo mật mới. Báo cáo trung thực về phần chưa làm tốt hơn khẳng định "đã bảo mật".
 - **Ảnh hưởng:** `docs/test-plan.md` (mục 1), `docs/test-report.md`, `docs/deployment-guide.md` và checklist bảo mật (buổi 15); `src/app.js`, `src/routes/` chỉ đổi nếu quyết định làm.
-- **Trạng thái:** Đã chốt ở buổi 15 (13/11/2026): giữ ở mức ghi nhận. Checklist bảo mật ghi mục 3 là KHÔNG ÁP DỤNG và mục 4 là CHƯA LÀM (một phần), Deployment Guide cảnh báo chưa mở ra internet, `docs/api.md` ghi rõ mọi endpoint chưa cần token.
+- **Trạng thái:** Ở buổi 15 (13/11/2026) đã chốt giữ ở mức ghi nhận; sang buổi 16 (14/11/2026) đổi quyết định và hiện thực đăng nhập, phân quyền theo trung tâm và mật khẩu băm (TD-34). Các mô tả ở buổi 15 (checklist mục 3 "không áp dụng", mục 4 "chưa làm", `docs/api.md` "chưa cần token") đã được cập nhật theo TD-34; đoạn trên giữ lại để truy vết lý do ban đầu.
 
 ### TD-29 — Thông điệp commit còn chung chung (phản hồi BT2)
 
